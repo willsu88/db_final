@@ -212,6 +212,22 @@ private:
 public:
 	SFWQuery () {}
 
+	vector <ExprTreePtr> getValues() {
+		return valuesToSelect;
+	}
+
+	vector <pair <string, string>> getTables() {
+		return tablesToProcess;
+	}
+
+	vector <ExprTreePtr> getDisjunctions(){
+		return allDisjunctions;
+	}
+
+	vector <ExprTreePtr> getGroupings(){
+		return groupingClauses;
+	}
+
 	SFWQuery (struct ValueList *selectClause, struct FromList *fromClause, 
 		struct CNF *cnf, struct ValueList *grouping) {
 		valuesToSelect = selectClause->valuesToCompute;

@@ -11,6 +11,8 @@ using namespace std;
 class ExprTree;
 typedef shared_ptr <ExprTree> ExprTreePtr;
 
+enum ExpType {SumExp, AvgExp, NonAgg};
+
 // this class encapsules a parsed SQL expression (such as "this.that > 34.5 AND 4 = 5")
 
 // class ExprTree is a pure virtual class... the various classes that implement it are below
@@ -19,6 +21,11 @@ class ExprTree {
 public:
 	virtual string toString () = 0;
 	virtual ~ExprTree () {}
+
+	ExpType getExpType() {
+		return ExpType :: NonAggExp;
+	}
+	
 };
 
 class BoolLiteral : public ExprTree {
@@ -38,6 +45,7 @@ public:
 			return "bool[false]";
 		}
 	}	
+	
 };
 
 class DoubleLiteral : public ExprTree {
@@ -337,6 +345,10 @@ public:
 	}	
 
 	~SumOp () {}
+
+	ExpType getExpType() {
+		return ExpType :: SumExp;
+	}
 };
 
 class AvgOp : public ExprTree {
@@ -356,6 +368,10 @@ public:
 	}	
 
 	~AvgOp () {}
+
+	ExpType getExpType() {
+		return ExpType :: AvgExp;
+	}
 };
 
 #endif
