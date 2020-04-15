@@ -58,14 +58,14 @@ void QueryManager :: runExpression () {
     /* Combine all predicates into one string */
     selectionPredicate = allPredicates.front();
     if (allPredicates.size() > 1) {
-        for (int i = 1; i < allPredicates.size(); i++) [
+        for (int i = 1; i < allPredicates.size(); i++) {
             //TODO: figure out exactly what to do here, some string operation
             // selectionPredicate = selectionPredicate ... + allPredicates[i];
-        ]
+        }
     }
     
     /* Parse groupingClauses */
-    for(auto g : query.getGroupings()){
+    for (auto g : query.getGroupings()) {
         //! push g->toString() onto groupings?
     }
 
