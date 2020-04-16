@@ -70,7 +70,7 @@ void QueryManager :: runExpression () {
     }
 
     /* Use the schema we created to get a outputTablePtr */ 
-    MyDB_TablePtr outTable = make_shared<MyDB_Table>("!!!!!fillthisin", outputSchema); // !
+    MyDB_TablePtr outTable = make_shared<MyDB_Table>("table name", "storage loc", outputSchema); // !
     outputTablePtr = make_shared<MyDB_TableReaderWriter>(outTable, this->bufMgrPtr);
 
     /* Distingush between aggregation and regular selection */

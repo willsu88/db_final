@@ -23,7 +23,7 @@ public:
 	virtual ~ExprTree () {}
 
 	ExpType getExpType() {
-		return ExpType :: NonAggExp;
+		return ExpType :: NonAgg;
 	}
 	
 };

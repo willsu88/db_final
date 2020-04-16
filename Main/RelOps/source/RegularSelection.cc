@@ -14,6 +14,12 @@ RegularSelection :: RegularSelection (MyDB_TableReaderWriterPtr inputIn, MyDB_Ta
 }
 
 void RegularSelection :: run () {
+	
+	cout << "Projections" << endl;
+	for (auto pro : projections) {
+		cout << pro << endl;
+	}
+	cout << "Selection: " << selectionPredicate << endl;
 
 	MyDB_RecordPtr inputRec = input->getEmptyRecord ();
 	MyDB_RecordPtr outputRec = output->getEmptyRecord ();

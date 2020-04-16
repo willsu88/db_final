@@ -21,6 +21,6 @@ class QueryManager{
         SFWQuery query;
         MyDB_BufferManagerPtr bufMgrPtr;
 
-}
+};
 
 #endif
