@@ -119,5 +119,5 @@ if ans=="11":
 if ans=='12':
 	print("\nOK, building rel op unit tests using clang++.")
 	common_env.Replace(CXX = "clang++")
-	common_env.Program ('bin/relOpUnitTest', ['../Main/RelOpTest/source/RelOpQUnit.cc', sqlSrc, relOpSrc, tableSrc, recordSrc, catalogSrc, bufferSrc])
+	common_env.Program ('bin/sqlUnitTest', ['../Main/SQLTest/source/main.cc', sqlSrc, relOpSrc, tableSrc, recordSrc, catalogSrc, bufferSrc])
 
