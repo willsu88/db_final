@@ -7,6 +7,7 @@
 #include "MyDB_Schema.h"
 #include "ParserTypes.h"
 #include "MyDB_Catalog.h"
+#include <chrono>
 
 using namespace std;
 
@@ -37,6 +38,8 @@ QueryManager :: QueryManager (SQLStatement *_statement, MyDB_BufferManagerPtr _b
 }
 
 void QueryManager :: runExpression () {
+    auto start = chrono::steady_clock::now();
+
     cout << "run expression starting" << endl;
     /* Data Structures Needed */
     MyDB_TableReaderWriterPtr inputTablePtr = nullptr;
@@ -125,6 +128,7 @@ void QueryManager :: runExpression () {
 
     cout << "About to output\n";
 
+
     int num_records = 0;
     while(iter->advance()){
         iter->getCurrent(rec);
@@ -133,7 +137,11 @@ void QueryManager :: runExpression () {
         num_records++;
     }
     cout << "Total number of records is: " << num_records << endl;
-    
+
+    auto end = chrono::steady_clock::now();
+    cout << "Total time taken is: " 
+		<< chrono::duration_cast<chrono::seconds>(end - start).count()
+		<< " sec " << endl;
 }
 
 #endif
