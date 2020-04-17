@@ -5,13 +5,16 @@
 #include "QueryManager.h"
 #include "MyDB_TableReaderWriter.h"
 #include "MyDB_Schema.h"
+#include "ParserTypes.h"
+#include "MyDB_Catalog.h"
 
 using namespace std;
 
-QueryManager :: QueryManager (SFWQuery query, MyDB_BufferManagerPtr bufMgrPtr, map <string, MyDB_TableReaderWriterPtr> tableMap) {
+QueryManager :: QueryManager (SFWQuery query, MyDB_BufferManagerPtr bufMgrPtr, MyDB_CatalogPtr catalog, map <string, MyDB_TableReaderWriterPtr> tableMap) {
     query = query;
     bufMgrPtr = bufMgrPtr;
     tableMap = tableMap;
+    catalog = catalog;
 }
 
 void QueryManager :: runExpression () {
@@ -28,7 +31,6 @@ void QueryManager :: runExpression () {
 
     /* Create the MyDB_TableReaderWriterPtr inputin for RegularSelection by joining all the tables from SFWQuery */
     vector<pair<string, string>> tableToProcess = query.getTables();    
-    //! ? how to get the tableReaderWriter for inputTablePtr
     map <string, string> tableAliases;
     for (auto p : tableToProcess) {
         tableAliases[p.first] = p.second;
@@ -43,7 +45,10 @@ void QueryManager :: runExpression () {
         projections.push_back(v->toString());
         ExpType expType = v->getExpType();
         //Todo: need to create schema 
-        // outputSchema->appendAtt(); // need to fill this in
+        MyDB_AttTypePtr attTypePtr = v->getAttTypePtr(catalog, tableAliases);
+        // outputSchema->appendAtt(make_pair(v.second, attTypePtr)); 
+        
+        // need to fill this in
 
         if (expType == ExpType:: SumExp) {
             hasAggregation = true;
@@ -55,6 +60,7 @@ void QueryManager :: runExpression () {
         } 
         else { // NonAggType
             // ! not sure what to do here
+
         }
     }
     

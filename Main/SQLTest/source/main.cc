@@ -10,6 +10,7 @@
 #include <sstream>
 #include <algorithm>
 #include <iterator>
+#include "QueryManager.h"
 
 using namespace std;
 string toLower (string data) {
@@ -164,6 +165,10 @@ int main (int numArgs, char **args) {
 
 						// print it out
 						final->printSFWQuery ();
+
+						QueryManager queryManager (final->getSFW(), myMgr, myCatalog, allTableReaderWriters);
+						queryManager.runExpression();
+
 					}
 
 					// get outta here

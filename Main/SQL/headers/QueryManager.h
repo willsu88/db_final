@@ -6,6 +6,7 @@
 #include "MyDB_TableReaderWriter.h"
 #include "Aggregate.h"
 #include "ExprTree.h"
+#include "MyDB_Catalog.h"
 
 class QueryManager{
 
@@ -13,7 +14,7 @@ class QueryManager{
 
     public: 
 
-        QueryManager(SFWQuery query, MyDB_BufferManagerPtr bufMgrPtr);
+        QueryManager(SFWQuery query, MyDB_BufferManagerPtr bufMgrPtr, MyDB_CatalogPtr catalog, map <string, MyDB_TableReaderWriterPtr> tableMap);
 
         void runExpression();
 
@@ -21,6 +22,7 @@ class QueryManager{
         SFWQuery query;
         MyDB_BufferManagerPtr bufMgrPtr;
         map <string, MyDB_TableReaderWriterPtr> tableMap;
+        MyDB_CatalogPtr catalog;
 
 };
 
