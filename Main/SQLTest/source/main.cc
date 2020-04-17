@@ -165,8 +165,7 @@ int main (int numArgs, char **args) {
 
 						// print it out
 						final->printSFWQuery ();
-
-						QueryManager queryManager (final->getSFW(), myMgr, myCatalog, allTableReaderWriters);
+						QueryManager queryManager (final, myMgr, myCatalog, allTableReaderWriters);
 						queryManager.runExpression();
 
 					}

@@ -218,7 +218,8 @@ public:
 	}
 
 	vector <pair <string, string>> getTables() {
-		return tablesToProcess;
+		cout << "Getter: tables to process size - " << this->tablesToProcess.size() << endl;
+		return this->tablesToProcess;
 	}
 
 	vector <ExprTreePtr> getDisjunctions(){

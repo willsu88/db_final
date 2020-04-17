@@ -10,15 +10,15 @@
 
 using namespace std;
 
-QueryManager :: QueryManager (SFWQuery query, MyDB_BufferManagerPtr bufMgrPtr, MyDB_CatalogPtr catalog, map <string, MyDB_TableReaderWriterPtr> tableMap) {
-    query = query;
+QueryManager :: QueryManager (SQLStatement *_statement, MyDB_BufferManagerPtr bufMgrPtr, MyDB_CatalogPtr catalog, map <string, MyDB_TableReaderWriterPtr> tableMap) {
+    statement = _statement;
     bufMgrPtr = bufMgrPtr;
     tableMap = tableMap;
     catalog = catalog;
 }
 
 void QueryManager :: runExpression () {
-
+    cout << "run expression starting" << endl;
     /* Data Structures Needed */
     MyDB_TableReaderWriterPtr inputTablePtr = nullptr;
     MyDB_TableReaderWriterPtr outputTablePtr = nullptr;
@@ -29,27 +29,37 @@ void QueryManager :: runExpression () {
     vector <pair <MyDB_AggType, string>> aggsToCompute; // For Aggregates
     bool hasAggregation = false;
 
+    SFWQuery query = statement->getSFW();
     /* Create the MyDB_TableReaderWriterPtr inputin for RegularSelection by joining all the tables from SFWQuery */
+    cout << "got the statement" << endl;
     vector<pair<string, string>> tableToProcess = query.getTables();    
+    cout << "got the tables" << endl;
     map <string, string> tableAliases;
     for (auto p : tableToProcess) {
-        tableAliases[p.first] = p.second;
+        tableAliases[p.second] = p.first;
     }
 
+    cout << "Got table aliases" << endl;
     // TODO do this for more than one table
+    cout << "size: " << tableToProcess.size() << endl;
+    cout << tableToProcess.front().first << endl;
+
     inputTablePtr = tableMap[tableToProcess.front().first];
-
-
+    cout << "got the input table ptr" << endl;
     MyDB_SchemaPtr mySchemaOutAgain  = make_shared <MyDB_Schema> ();
 		
 
 	/* Parse valuesToSelect */
     for(auto v : query.getValues()){
+        cout << "Inside values list" << endl;
         projections.push_back(v->toString());
         ExpType expType = v->getExpType();
-
+        cout <<  "Got exp type" << endl;
+        v->getName();
+        cout << "Got name" << endl;
+        v->getAttTypePtr(catalog, tableAliases);
+        cout << "Got att type ptr" << endl;
         mySchemaOutAgain->appendAtt (make_pair (v->getName(), v->getAttTypePtr(catalog, tableAliases)));
-        
         // need to fill this in
         if (expType == ExpType:: SumExp) {
             hasAggregation = true;

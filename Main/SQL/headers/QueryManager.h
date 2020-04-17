@@ -14,12 +14,12 @@ class QueryManager{
 
     public: 
 
-        QueryManager(SFWQuery query, MyDB_BufferManagerPtr bufMgrPtr, MyDB_CatalogPtr catalog, map <string, MyDB_TableReaderWriterPtr> tableMap);
+        QueryManager(SQLStatement *statement, MyDB_BufferManagerPtr bufMgrPtr, MyDB_CatalogPtr catalog, map <string, MyDB_TableReaderWriterPtr> tableMap);
 
         void runExpression();
 
     private:
-        SFWQuery query;
+        SQLStatement *statement;
         MyDB_BufferManagerPtr bufMgrPtr;
         map <string, MyDB_TableReaderWriterPtr> tableMap;
         MyDB_CatalogPtr catalog;
