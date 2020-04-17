@@ -9,3 +9,35 @@ where
 group by
 	o.o_orderpriority;
 
+### Curent Results ###
+Record 0: 193846.250000|order priority was 5-LOW|
+Record 1: 144659.200000|order priority was 5-LOW|
+Record 2: 58749.590000|order priority was 4-NOT SPECIFIED|
+Record 3: 163243.980000|order priority was 3-MEDIUM|
+Record 4: 206680.660000|order priority was 3-MEDIUM|
+Record 5: 39414.990000|order priority was 3-MEDIUM|
+Record 6: 103740.670000|order priority was 5-LOW|
+Record 7: 197689.490000|order priority was 4-NOT SPECIFIED|
+Record 8: 113534.420000|order priority was 5-LOW|
+Record 9: 68989.900000|order priority was 2-HIGH|
+Record 10: 110512.840000|order priority was 3-MEDIUM|
+Record 11: 69168.330000|order priority was 1-URGENT|
+Record 12: 112126.950000|order priority was 4-NOT SPECIFIED|
+Record 13: 66195.160000|order priority was 1-URGENT|
+Record 14: 261013.140000|order priority was 5-LOW|
+Record 15: 189484.120000|order priority was 2-HIGH|
+Record 16: 130464.090000|order priority was 3-MEDIUM|
+Record 17: 144947.210000|order priority was 3-MEDIUM|
+Record 18: 200354.300000|order priority was 4-NOT SPECIFIED|
+Record 19: 34439.930000|order priority was 2-HIGH|
+Record 20: 301925.760000|order priority was 5-LOW|
+Record 21: 188023.670000|order priority was 4-NOT SPECIFIED|
+Record 22: 71124.350000|order priority was 4-NOT SPECIFIED|
+Record 23: 88699.170000|order priority was 1-URGENT|
+Record 24: 176707.840000|order priority was 3-MEDIUM|
+Record 25: 191542.310000|order priority was 3-MEDIUM|
+Record 26: 47095.310000|order priority was 2-HIGH|
+Record 27: 259960.360000|order priority was 4-NOT SPECIFIED|
+Record 28: 313134.620000|order priority was 2-HIGH|
+Record 29: 2749.870000|order priority was 1-URGENT|
+Total number of records is: 729413

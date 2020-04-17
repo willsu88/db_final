@@ -41,7 +41,7 @@ void QueryManager :: runExpression () {
     /* Data Structures Needed */
     MyDB_TableReaderWriterPtr inputTablePtr = nullptr;
     MyDB_TableReaderWriterPtr outputTablePtr = nullptr;
-    MyDB_SchemaPtr outputSchema = make_shared<MyDB_Schema>();
+    MyDB_SchemaPtr mySchemaOutAgain  = make_shared <MyDB_Schema> ();
  	vector <string> groupings;
     string selectionPredicate;
     vector <string> projections; // For RegularSelection
@@ -59,10 +59,6 @@ void QueryManager :: runExpression () {
     //Might need to join other stuff
     inputTablePtr = allTableReaderWriters[tableToProcess.front().first];
 
-
-    MyDB_SchemaPtr mySchemaOutAgain  = make_shared <MyDB_Schema> ();
-		
-
 	/* Parse valuesToSelect */
     for(auto v : query.getValues()){
         projections.push_back(v->toString());
@@ -71,11 +67,11 @@ void QueryManager :: runExpression () {
         // need to fill this in
         if (expType == ExpType:: SumExp) {
             hasAggregation = true;
-            // Todo: push back onto aggsToCompute
+            aggsToCompute.push_back(make_pair(MyDB_AggType::Sum, v->toString()));
         } 
         else if (expType == ExpType:: AvgExp) {
             hasAggregation = true;
-            // Todo: push back onto aggsToCompute
+            aggsToCompute.push_back(make_pair(MyDB_AggType::Avg, v->toString()));
         } 
         else { // NonAggType
             // ! not sure what to do here
