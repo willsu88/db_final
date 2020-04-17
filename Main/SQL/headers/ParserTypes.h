@@ -299,6 +299,10 @@ public:
 		isCreate = true;
 	}
 
+	SFWQuery getSFW() {
+		return myQuery;
+	}
+
 	bool isCreateTable () {
 		return isCreate;
 	}

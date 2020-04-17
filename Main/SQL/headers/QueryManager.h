@@ -20,6 +20,7 @@ class QueryManager{
     private:
         SFWQuery query;
         MyDB_BufferManagerPtr bufMgrPtr;
+        map <string, MyDB_TableReaderWriterPtr> tableMap;
 
 };
 

@@ -8,9 +8,10 @@
 
 using namespace std;
 
-QueryManager :: QueryManager (SFWQuery query, MyDB_BufferManagerPtr bufMgrPtr) {
+QueryManager :: QueryManager (SFWQuery query, MyDB_BufferManagerPtr bufMgrPtr, map <string, MyDB_TableReaderWriterPtr> tableMap) {
     query = query;
     bufMgrPtr = bufMgrPtr;
+    tableMap = tableMap;
 }
 
 void QueryManager :: runExpression () {
@@ -28,6 +29,14 @@ void QueryManager :: runExpression () {
     /* Create the MyDB_TableReaderWriterPtr inputin for RegularSelection by joining all the tables from SFWQuery */
     vector<pair<string, string>> tableToProcess = query.getTables();    
     //! ? how to get the tableReaderWriter for inputTablePtr
+    map <string, string> tableAliases;
+    for (auto p : tableToProcess) {
+        tableAliases[p.first] = p.second;
+    }
+
+    // TODO do this for more than one table
+    inputTablePtr = tableMap[tableToProcess.front().first];
+
 
 	/* Parse valuesToSelect */
     for(auto v : query.getValues()){
