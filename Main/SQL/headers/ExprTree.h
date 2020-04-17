@@ -175,7 +175,7 @@ public:
 	}
 
 	string toString () {
-		return "[" + tableName + "_" + attName + "]";
+		return "[" + attName + "]";
 	}	
 
 	~Identifier () {}
@@ -206,13 +206,8 @@ public:
 	} 
 
 	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
-		cout << "Table aliases size: " << tableAliases.size() << endl;
-		cout << "table name: " << tableName << " table aliases " << tableAliases.begin()->first << endl;
 		string tableFileName = tableAliases[tableName];
-		cout << tableFileName << endl;
-		cout << "att name: " << attName << endl;
 		catalog->getString(tableFileName + "." + attName + ".type", this->attributeType);
-		cout << this->attributeType << endl;
 		this->getAttType();
 		return attTypePtr;
 	}

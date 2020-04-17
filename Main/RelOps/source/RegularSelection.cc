@@ -20,7 +20,8 @@ void RegularSelection :: run () {
 		cout << pro << endl;
 	}
 	cout << "Selection: " << selectionPredicate << endl;
-
+	cout << "input: " << input.get() << endl;
+	cout << "output: " << output.get() << endl;
 	MyDB_RecordPtr inputRec = input->getEmptyRecord ();
 	MyDB_RecordPtr outputRec = output->getEmptyRecord ();
 	
@@ -36,12 +37,12 @@ void RegularSelection :: run () {
 	while (myIter->advance ()) {
 
 		myIter->getCurrent (inputRec);
-
+		
 		// see if it is accepted by the predicate
 		if (!pred()->toBool ()) {
 			continue;
 		}
-
+		
 		// run all of the computations
 		int i = 0;
 		for (auto &f : finalComputations) {

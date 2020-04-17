@@ -51,7 +51,6 @@ bool MyDB_Catalog :: getStringList (string key, vector <string> &returnVal) {
 bool MyDB_Catalog :: getString (string key, string &res) {
 	if (myData.count (key) == 0)
 		return false;
-
 	res = myData[key];
 	return true;
 }

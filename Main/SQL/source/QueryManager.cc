@@ -10,11 +10,26 @@
 
 using namespace std;
 
-QueryManager :: QueryManager (SQLStatement *_statement, MyDB_BufferManagerPtr bufMgrPtr, MyDB_CatalogPtr catalog, map <string, MyDB_TableReaderWriterPtr> tableMap) {
+QueryManager :: QueryManager (SQLStatement *_statement, MyDB_BufferManagerPtr _bufMgrPtr, MyDB_CatalogPtr _catalog) {
     statement = _statement;
-    bufMgrPtr = bufMgrPtr;
-    tableMap = tableMap;
-    catalog = catalog;
+    bufMgrPtr = _bufMgrPtr;
+    catalog = _catalog;
+    allTables = MyDB_Table :: getAllTables (catalog);
+	
+	for (auto &a : allTables) {
+		if (a.second->getFileType () == "heap") {
+			allTableReaderWriters[a.first] =  make_shared <MyDB_TableReaderWriter> (a.second, bufMgrPtr);
+		} else if (a.second->getFileType () == "bplustree") {
+			allBPlusReaderWriters[a.first] = make_shared <MyDB_BPlusTreeReaderWriter> (a.second->getSortAtt (), a.second, bufMgrPtr);
+			allTableReaderWriters[a.first] = allBPlusReaderWriters[a.first];	
+		}
+        string tableFile = a.first+".tbl";
+        cout << "Loading " + tableFile << endl;
+        allTableReaderWriters[a.first]->loadFromTextFile(tableFile);
+        
+	}
+    // ! might switch to blus one later idks
+    tableMap = allTableReaderWriters;
 }
 
 void QueryManager :: runExpression () {
@@ -31,34 +46,21 @@ void QueryManager :: runExpression () {
 
     SFWQuery query = statement->getSFW();
     /* Create the MyDB_TableReaderWriterPtr inputin for RegularSelection by joining all the tables from SFWQuery */
-    cout << "got the statement" << endl;
     vector<pair<string, string>> tableToProcess = query.getTables();    
-    cout << "got the tables" << endl;
     map <string, string> tableAliases;
     for (auto p : tableToProcess) {
         tableAliases[p.second] = p.first;
     }
 
-    cout << "Got table aliases" << endl;
-    // TODO do this for more than one table
-    cout << "size: " << tableToProcess.size() << endl;
-    cout << tableToProcess.front().first << endl;
-
+    
     inputTablePtr = tableMap[tableToProcess.front().first];
-    cout << "got the input table ptr" << endl;
     MyDB_SchemaPtr mySchemaOutAgain  = make_shared <MyDB_Schema> ();
 		
 
 	/* Parse valuesToSelect */
     for(auto v : query.getValues()){
-        cout << "Inside values list" << endl;
         projections.push_back(v->toString());
         ExpType expType = v->getExpType();
-        cout <<  "Got exp type" << endl;
-        v->getName();
-        cout << "Got name" << endl;
-        v->getAttTypePtr(catalog, tableAliases);
-        cout << "Got att type ptr" << endl;
         mySchemaOutAgain->appendAtt (make_pair (v->getName(), v->getAttTypePtr(catalog, tableAliases)));
         // need to fill this in
         if (expType == ExpType:: SumExp) {
@@ -96,17 +98,17 @@ void QueryManager :: runExpression () {
     /* Use the schema we created to get a outputTablePtr */ 
     MyDB_TablePtr outTable = make_shared<MyDB_Table>("TableOut", "TableOut.bin", outputSchema);
     outputTablePtr = make_shared<MyDB_TableReaderWriter>(outTable, this->bufMgrPtr);
-
     /* Distingush between aggregation and regular selection */
     if (hasAggregation) {
+        cout << "doing aggregation\n";
         Aggregate *aggregation = new Aggregate(inputTablePtr, outputTablePtr, aggsToCompute, groupings, selectionPredicate);
         aggregation->run();
     }
     else{
+        cout << "Doing selection\n";
         RegularSelection *selection = new RegularSelection(inputTablePtr, outputTablePtr, selectionPredicate, projections);
         selection->run();
     }
-
     /* Print out the first 30 records */
     // TODO: need to calculate and print query time
     MyDB_RecordPtr rec = outputTablePtr->getEmptyRecord();

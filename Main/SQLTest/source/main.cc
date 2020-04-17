@@ -51,7 +51,7 @@ int main (int numArgs, char **args) {
 			allTableReaderWriters[a.first] = allBPlusReaderWriters[a.first];	
 		}
 	}
-
+	
 	// print out the intro notification
 	cout << "\n          Welcome to MyDB v0.1\n\n";
 	cout << "\"Not the worst database in the world\" (tm) \n\n";
@@ -165,7 +165,8 @@ int main (int numArgs, char **args) {
 
 						// print it out
 						final->printSFWQuery ();
-						QueryManager queryManager (final, myMgr, myCatalog, allTableReaderWriters);
+
+						QueryManager queryManager (final, shared_ptr<MyDB_BufferManager>(myMgr), shared_ptr<MyDB_Catalog>(myCatalog));
 						queryManager.runExpression();
 
 					}

@@ -218,7 +218,6 @@ public:
 	}
 
 	vector <pair <string, string>> getTables() {
-		cout << "Getter: tables to process size - " << this->tablesToProcess.size() << endl;
 		return this->tablesToProcess;
 	}
 
