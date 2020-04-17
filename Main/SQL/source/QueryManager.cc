@@ -10,26 +10,30 @@
 
 using namespace std;
 
-QueryManager :: QueryManager (SQLStatement *_statement, MyDB_BufferManagerPtr _bufMgrPtr, MyDB_CatalogPtr _catalog) {
-    statement = _statement;
-    bufMgrPtr = _bufMgrPtr;
-    catalog = _catalog;
-    allTables = MyDB_Table :: getAllTables (catalog);
+QueryManager :: QueryManager (SQLStatement *_statement, MyDB_BufferManagerPtr _bufMgrPtr, MyDB_CatalogPtr _catalog, map <string, MyDB_TableReaderWriterPtr> _allTableReaderWriters) {
+    this->statement = _statement;
+    this->bufMgrPtr = _bufMgrPtr;
+    this->catalog = _catalog;
+    this->allTableReaderWriters = _allTableReaderWriters;
+
+
+    // allTables = allTableReaderWriters;
+    // allTables = MyDB_Table :: getAllTables (catalog);
 	
-	for (auto &a : allTables) {
-		if (a.second->getFileType () == "heap") {
-			allTableReaderWriters[a.first] =  make_shared <MyDB_TableReaderWriter> (a.second, bufMgrPtr);
-		} else if (a.second->getFileType () == "bplustree") {
-			allBPlusReaderWriters[a.first] = make_shared <MyDB_BPlusTreeReaderWriter> (a.second->getSortAtt (), a.second, bufMgrPtr);
-			allTableReaderWriters[a.first] = allBPlusReaderWriters[a.first];	
-		}
-        string tableFile = a.first+".tbl";
-        cout << "Loading " + tableFile << endl;
-        allTableReaderWriters[a.first]->loadFromTextFile(tableFile);
+	// for (auto &a : allTables) {
+	// 	if (a.second->getFileType () == "heap") {
+	// 		allTableReaderWriters[a.first] =  make_shared <MyDB_TableReaderWriter> (a.second, bufMgrPtr);
+	// 	} else if (a.second->getFileType () == "bplustree") {
+	// 		allBPlusReaderWriters[a.first] = make_shared <MyDB_BPlusTreeReaderWriter> (a.second->getSortAtt (), a.second, bufMgrPtr);
+	// 		allTableReaderWriters[a.first] = allBPlusReaderWriters[a.first];	
+	// 	}
+    //     string tableFile = a.first+".tbl";
+    //     cout << "Loading " + tableFile << endl;
+    //     allTableReaderWriters[a.first]->loadFromTextFile(tableFile);
         
-	}
-    // ! might switch to blus one later idks
-    tableMap = allTableReaderWriters;
+	// }
+    // // ! might switch to blus one later idks
+    // this->tableMap = allTableReaderWriters;
 }
 
 void QueryManager :: runExpression () {
@@ -52,8 +56,10 @@ void QueryManager :: runExpression () {
         tableAliases[p.second] = p.first;
     }
 
-    
-    inputTablePtr = tableMap[tableToProcess.front().first];
+    //Might need to join other stuff
+    inputTablePtr = allTableReaderWriters[tableToProcess.front().first];
+
+
     MyDB_SchemaPtr mySchemaOutAgain  = make_shared <MyDB_Schema> ();
 		
 
@@ -61,7 +67,7 @@ void QueryManager :: runExpression () {
     for(auto v : query.getValues()){
         projections.push_back(v->toString());
         ExpType expType = v->getExpType();
-        mySchemaOutAgain->appendAtt (make_pair (v->getName(), v->getAttTypePtr(catalog, tableAliases)));
+        mySchemaOutAgain->appendAtt (make_pair(v->getName(), v->getAttTypePtr(catalog, tableAliases)));
         // need to fill this in
         if (expType == ExpType:: SumExp) {
             hasAggregation = true;
@@ -96,7 +102,7 @@ void QueryManager :: runExpression () {
     }
 
     /* Use the schema we created to get a outputTablePtr */ 
-    MyDB_TablePtr outTable = make_shared<MyDB_Table>("TableOut", "TableOut.bin", outputSchema);
+    MyDB_TablePtr outTable = make_shared<MyDB_Table>("TableOut", "TableOut.bin", mySchemaOutAgain);
     outputTablePtr = make_shared<MyDB_TableReaderWriter>(outTable, this->bufMgrPtr);
     /* Distingush between aggregation and regular selection */
     if (hasAggregation) {
@@ -109,10 +115,15 @@ void QueryManager :: runExpression () {
         RegularSelection *selection = new RegularSelection(inputTablePtr, outputTablePtr, selectionPredicate, projections);
         selection->run();
     }
+
+    cout << "Finished selection\n";
+
     /* Print out the first 30 records */
     // TODO: need to calculate and print query time
     MyDB_RecordPtr rec = outputTablePtr->getEmptyRecord();
     MyDB_RecordIteratorAltPtr iter = outputTablePtr->getIteratorAlt();
+
+    cout << "About to output\n";
 
     int num_records = 0;
     while(iter->advance()){

@@ -15,7 +15,7 @@ class QueryManager{
 
     public: 
 
-        QueryManager(SQLStatement *statement, MyDB_BufferManagerPtr bufMgrPtr, MyDB_CatalogPtr catalog);
+        QueryManager(SQLStatement *statement, MyDB_BufferManagerPtr bufMgrPtr, MyDB_CatalogPtr catalog, map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters);
 
         void runExpression();
 

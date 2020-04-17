@@ -15,13 +15,11 @@ RegularSelection :: RegularSelection (MyDB_TableReaderWriterPtr inputIn, MyDB_Ta
 
 void RegularSelection :: run () {
 	
-	cout << "Projections" << endl;
 	for (auto pro : projections) {
 		cout << pro << endl;
 	}
+	
 	cout << "Selection: " << selectionPredicate << endl;
-	cout << "input: " << input.get() << endl;
-	cout << "output: " << output.get() << endl;
 	MyDB_RecordPtr inputRec = input->getEmptyRecord ();
 	MyDB_RecordPtr outputRec = output->getEmptyRecord ();
 	
@@ -30,10 +28,12 @@ void RegularSelection :: run () {
 	for (string s : projections) {
 		finalComputations.push_back (inputRec->compileComputation (s));
 	}
+
 	func pred = inputRec->compileComputation (selectionPredicate);
 
 	// now, iterate through the B+-tree query results
 	MyDB_RecordIteratorAltPtr myIter = input->getIteratorAlt ();
+
 	while (myIter->advance ()) {
 
 		myIter->getCurrent (inputRec);

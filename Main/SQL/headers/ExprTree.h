@@ -213,7 +213,7 @@ public:
 	}
 
 	string getName() {
-		return attName;
+		return "[" + attName + "]";
 	}
 };
 

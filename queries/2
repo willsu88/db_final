@@ -7,3 +7,36 @@ where
 	(l.l_shipinstruct = "TAKE BACK RETURN") and
 	(l.l_extendedprice / l.l_quantity > 1759.6) and
 	(l.l_extendedprice / l.l_quantity < 1759.8);
+
+### Current Results ###
+Record 0: 5441219|
+Record 1: 5453252|
+Record 2: 5459239|
+Record 3: 5485735|
+Record 4: 5491008|
+Record 5: 5498118|
+Record 6: 5498531|
+Record 7: 5499302|
+Record 8: 5500771|
+Record 9: 5501061|
+Record 10: 5501601|
+Record 11: 5510085|
+Record 12: 5511109|
+Record 13: 5519494|
+Record 14: 5521058|
+Record 15: 5522693|
+Record 16: 5524448|
+Record 17: 5528964|
+Record 18: 5530662|
+Record 19: 5542210|
+Record 20: 5551328|
+Record 21: 5552645|
+Record 22: 5553125|
+Record 23: 5558723|
+Record 24: 5563111|
+Record 25: 5564289|
+Record 26: 5564774|
+Record 27: 5574497|
+Record 28: 5586818|
+Record 29: 5587045|
+Total number of records is: 1063

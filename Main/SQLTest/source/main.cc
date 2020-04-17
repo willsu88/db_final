@@ -36,7 +36,7 @@ int main (int numArgs, char **args) {
 	// and create tables for everything in the database
 	static map <string, MyDB_TablePtr> allTables = MyDB_Table :: getAllTables (myCatalog);
 
-	// this is all of the tables
+	// this is all of the tablesallTableReaderWriters
 	static map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters;
 
 	// and this is just the B+-Trees
@@ -166,7 +166,7 @@ int main (int numArgs, char **args) {
 						// print it out
 						final->printSFWQuery ();
 
-						QueryManager queryManager (final, shared_ptr<MyDB_BufferManager>(myMgr), shared_ptr<MyDB_Catalog>(myCatalog));
+						QueryManager queryManager (final, shared_ptr<MyDB_BufferManager>(myMgr), shared_ptr<MyDB_Catalog>(myCatalog), allTableReaderWriters);
 						queryManager.runExpression();
 
 					}
