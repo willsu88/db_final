@@ -40,16 +40,17 @@ void QueryManager :: runExpression () {
     inputTablePtr = tableMap[tableToProcess.front().first];
 
 
+    MyDB_SchemaPtr mySchemaOutAgain  = make_shared <MyDB_Schema> ();
+		
+
 	/* Parse valuesToSelect */
     for(auto v : query.getValues()){
         projections.push_back(v->toString());
         ExpType expType = v->getExpType();
-        //Todo: need to create schema 
-        MyDB_AttTypePtr attTypePtr = v->getAttTypePtr(catalog, tableAliases);
-        // outputSchema->appendAtt(make_pair(v.second, attTypePtr)); 
+
+        mySchemaOutAgain->appendAtt (make_pair (v->getName(), v->getAttTypePtr(catalog, tableAliases)));
         
         // need to fill this in
-
         if (expType == ExpType:: SumExp) {
             hasAggregation = true;
             // Todo: push back onto aggsToCompute
@@ -60,7 +61,6 @@ void QueryManager :: runExpression () {
         } 
         else { // NonAggType
             // ! not sure what to do here
-
         }
     }
     
@@ -74,8 +74,7 @@ void QueryManager :: runExpression () {
     selectionPredicate = allPredicates.front();
     if (allPredicates.size() > 1) {
         for (int i = 1; i < allPredicates.size(); i++) {
-            //TODO: figure out exactly what to do here, some string operation
-            // selectionPredicate = selectionPredicate ... + allPredicates[i];
+            selectionPredicate =  "&& (" + selectionPredicate + ", " + allPredicates[i] + ")";
         }
     }
     
@@ -85,7 +84,7 @@ void QueryManager :: runExpression () {
     }
 
     /* Use the schema we created to get a outputTablePtr */ 
-    MyDB_TablePtr outTable = make_shared<MyDB_Table>("table name", "storage loc", outputSchema); // !
+    MyDB_TablePtr outTable = make_shared<MyDB_Table>("TableOut", "TableOut.bin", outputSchema);
     outputTablePtr = make_shared<MyDB_TableReaderWriter>(outTable, this->bufMgrPtr);
 
     /* Distingush between aggregation and regular selection */

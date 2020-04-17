@@ -30,6 +30,7 @@ public:
 	}
 	virtual AttType getAttType() = 0;
 	virtual MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) = 0;
+	virtual string getName() = 0;
 	
 };
 
@@ -58,6 +59,10 @@ public:
 	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
 		return make_shared <MyDB_BoolAttType> ();
 	}
+
+	string getName() {
+		return "Bool";
+	}
 	
 };
 
@@ -84,6 +89,11 @@ public:
 	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
 		return make_shared <MyDB_DoubleAttType> ();
 	}
+
+	string getName() {
+		return "Number";
+	}
+
 };
 
 // this implement class ExprTree
@@ -109,6 +119,10 @@ public:
 
 	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
 		return make_shared <MyDB_IntAttType> ();
+	}
+
+	string getName() {
+		return "Number";
 	}
 
 };
@@ -137,6 +151,10 @@ public:
 
 	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
 		return make_shared <MyDB_StringAttType> ();
+	}
+
+	string getName() {
+		return "Number";
 	}
 };
 
@@ -193,6 +211,10 @@ public:
 		this->getAttType();
 		return attTypePtr;
 	}
+
+	string getName() {
+		return attName;
+	}
 };
 
 class MinusOp : public ExprTree {
@@ -221,6 +243,10 @@ public:
 
 	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
 		return make_shared <MyDB_DoubleAttType> ();
+	}
+
+	string getName() {
+		return "Number";
 	}
 };
 
@@ -256,6 +282,10 @@ public:
 		}
 	}
 
+	string getName() {
+		return "Number";
+	}
+
 
 };
 
@@ -286,6 +316,10 @@ public:
 	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
 		return make_shared <MyDB_DoubleAttType> ();
 	}
+
+	string getName() {
+		return "Number";
+	}
 };
 
 class DivideOp : public ExprTree {
@@ -313,6 +347,10 @@ public:
 
 	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
 		return make_shared <MyDB_DoubleAttType> ();
+	}
+
+	string getName() {
+		return "Number";
 	}
 	
 };
@@ -344,6 +382,10 @@ public:
 	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
 		return make_shared <MyDB_BoolAttType>();
 	}
+
+	string getName() {
+		return "Number";
+	}
 };
 
 class LtOp : public ExprTree {
@@ -372,6 +414,10 @@ public:
 
 	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
 		return make_shared <MyDB_BoolAttType>();
+	}
+
+	string getName() {
+		return "Number";
 	}
 };
 
@@ -402,6 +448,10 @@ public:
 	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
 		return make_shared <MyDB_BoolAttType>();
 	}
+
+	string getName() {
+		return "Number";
+	}
 };
 
 class OrOp : public ExprTree {
@@ -430,6 +480,10 @@ public:
 
 	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
 		return make_shared <MyDB_BoolAttType>();
+	}
+
+	string getName() {
+		return "Number";
 	}
 };
 
@@ -460,6 +514,10 @@ public:
 	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
 		return make_shared <MyDB_BoolAttType>();
 	}
+
+	string getName() {
+		return "Number";
+	}
 };
 
 class NotOp : public ExprTree {
@@ -486,6 +544,10 @@ public:
 
 	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
 		return make_shared <MyDB_BoolAttType>();
+	}
+
+	string getName() {
+		return "Number";
 	}
 };
 
@@ -519,6 +581,10 @@ public:
 		return make_shared <MyDB_DoubleAttType>();
 	}
 
+	string getName() {
+		return "Sum";
+	}
+
 };
 
 class AvgOp : public ExprTree {
@@ -549,6 +615,10 @@ public:
 
 	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
 		return make_shared <MyDB_DoubleAttType>();
+	}
+
+	string getName() {
+		return "Avg";
 	}
 };
 
