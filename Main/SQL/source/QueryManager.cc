@@ -74,7 +74,9 @@ void QueryManager :: runExpression () {
             aggsToCompute.push_back(make_pair(MyDB_AggType::Avg, v->toString()));
         } 
         else { // NonAggType
-            // ! not sure what to do here
+            // !! Not sure if this should be here or below at line 99
+            groupings.push_back(v->toString());
+            cout << "Grouping:" << v->toString() << endl;
         }
     }
     
@@ -93,9 +95,11 @@ void QueryManager :: runExpression () {
     }
     
     /* Parse groupingClauses */
-    for (auto g : query.getGroupings()) {
-        //! push g->toString() onto groupings?
-    }
+    // for (auto g : query.getGroupings()) {
+    //     groupings.push_back(g->toString());
+    // }
+
+    cout << "Grouping size: " << groupings.size() << endl;
 
     /* Use the schema we created to get a outputTablePtr */ 
     MyDB_TablePtr outTable = make_shared<MyDB_Table>("TableOut", "TableOut.bin", mySchemaOutAgain);

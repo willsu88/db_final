@@ -1,3 +1,23 @@
+CREATE TABLE lineitem (
+	l_orderkey	INT,
+	l_partkey	INT,
+	l_suppkey	INT,
+	l_linenumber	INT,
+	l_quantity	INT,
+	l_extendedprice	DOUBLE,
+	l_discount	DOUBLE,
+	l_tax		DOUBLE,
+	l_returnflag	STRING,
+	l_linestatus	STRING,
+	l_shipdate	STRING,
+	l_commitdate	STRING,
+	l_receiptdate	STRING,
+	l_shipinstruct	STRING,
+	l_shipmode	STRING,
+	l_comment	STRING
+);
+
+load lineitem from lineitem.tbl;
 
 select
 	"return flag was " + l.l_returnflag,
