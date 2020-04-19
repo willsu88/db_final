@@ -41,3 +41,11 @@ Record 27: 259960.360000|order priority was 4-NOT SPECIFIED|
 Record 28: 313134.620000|order priority was 2-HIGH|
 Record 29: 2749.870000|order priority was 1-URGENT|
 Total number of records is: 729413
+
+### Database Results ###
+avg						output
+"150454.466436298694"	"order priority was 1-URGENT"
+"150724.811168716385"	"order priority was 2-HIGH"
+"150068.606146006326"	"order priority was 3-MEDIUM"
+"150129.831017770266"	"order priority was 4-NOT SPECIFIED"
+"150611.604523227551"	"order priority was 5-LOW"

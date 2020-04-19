@@ -33,3 +33,8 @@ where
 Record 0: furiously ir|
 Record 1: furiously ir|
 Total number of records is: 2
+
+### Database Results ###
+l_comment
+"furiously ir"
+count = 1

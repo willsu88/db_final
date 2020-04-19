@@ -54,3 +54,8 @@ Record 27: -1.000000|1.781574|
 Record 28: -1.000000|1.126990|
 Record 29: -1.000000|4.076576|
 Total number of records is: 292098
+
+
+### Database Results ###
+sum 		avg
+"292098"	"3.620425409406142306040401"

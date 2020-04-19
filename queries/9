@@ -17,3 +17,39 @@ where
 	and (not l2.l_suppkey = l1.l_suppkey)
 group by
 	s.s_name;
+
+
+This one might take a bit on our database
+### Database Results ###
+name 									sum
+"supplier name was Supplier#000000001"	"17825"
+"supplier name was Supplier#000000002"	"18525"
+"supplier name was Supplier#000000003"	"15850"
+"supplier name was Supplier#000000004"	"20725"
+"supplier name was Supplier#000000005"	"18650"
+"supplier name was Supplier#000000006"	"16775"
+"supplier name was Supplier#000000007"	"19400"
+"supplier name was Supplier#000000008"	"19550"
+"supplier name was Supplier#000000009"	"16350"
+"supplier name was Supplier#000000010"	"17900"
+"supplier name was Supplier#000000011"	"19300"
+"supplier name was Supplier#000000012"	"17925"
+"supplier name was Supplier#000000013"	"18475"
+"supplier name was Supplier#000000014"	"19350"
+"supplier name was Supplier#000000015"	"18975"
+"supplier name was Supplier#000000016"	"18600"
+"supplier name was Supplier#000000017"	"17500"
+"supplier name was Supplier#000000018"	"19625"
+"supplier name was Supplier#000000019"	"16050"
+"supplier name was Supplier#000000020"	"20625"
+"supplier name was Supplier#000000021"	"17350"
+"supplier name was Supplier#000000022"	"18750"
+"supplier name was Supplier#000000023"	"18900"
+"supplier name was Supplier#000000024"	"18675"
+"supplier name was Supplier#000000025"	"20300"
+"supplier name was Supplier#000000026"	"18900"
+"supplier name was Supplier#000000027"	"18300"
+"supplier name was Supplier#000000028"	"16925"
+"supplier name was Supplier#000000029"	"17800"
+"supplier name was Supplier#000000030"	"18450"
+count = 10000

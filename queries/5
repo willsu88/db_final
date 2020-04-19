@@ -36,3 +36,8 @@ where
         (l.l_shipdate > "1998-06-01")
 group by
 	l.l_returnflag;
+
+
+### Database Results ###
+output				sum				sum					sum					sum						avg						avg						avg							sum
+"return flag was N"	"7826475.00"	"11731187444.12"	"11144649274.7501"	"11590849811.731329"	"25.4877584118175779"	"38203.874855471752"	"0.04999404040798780726"	"307068"
