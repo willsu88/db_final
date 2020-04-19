@@ -20,13 +20,30 @@ CREATE TABLE lineitem (
 load lineitem from lineitem.tbl;
 
 select 
-	l.l_comment
+	l.l_comment, l.l_orderkey
 from 
 	lineitem as l
 where
 	(l.l_shipdate = "1994-05-12") and
 	(l.l_commitdate = "1994-05-22") and
 	(l.l_receiptdate = "1994-06-10");
+
+1994-05-17|1994-06-10|1994-06-08
+
+select 
+	sum(1)
+from 
+	lineitem as l;
+
+
+select 
+	l.l_comment
+from 
+	lineitem as l
+where
+	(l.l_shipdate = '1994-05-12') and
+	(l.l_commitdate = '1994-05-22') and
+	(l.l_receiptdate = '1994-06-10');
 
 
 ### Current Results ###

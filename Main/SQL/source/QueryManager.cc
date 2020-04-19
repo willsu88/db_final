@@ -16,25 +16,6 @@ QueryManager :: QueryManager (SQLStatement *_statement, MyDB_BufferManagerPtr _b
     this->bufMgrPtr = _bufMgrPtr;
     this->catalog = _catalog;
     this->allTableReaderWriters = _allTableReaderWriters;
-
-
-    // allTables = allTableReaderWriters;
-    // allTables = MyDB_Table :: getAllTables (catalog);
-	
-	// for (auto &a : allTables) {
-	// 	if (a.second->getFileType () == "heap") {
-	// 		allTableReaderWriters[a.first] =  make_shared <MyDB_TableReaderWriter> (a.second, bufMgrPtr);
-	// 	} else if (a.second->getFileType () == "bplustree") {
-	// 		allBPlusReaderWriters[a.first] = make_shared <MyDB_BPlusTreeReaderWriter> (a.second->getSortAtt (), a.second, bufMgrPtr);
-	// 		allTableReaderWriters[a.first] = allBPlusReaderWriters[a.first];	
-	// 	}
-    //     string tableFile = a.first+".tbl";
-    //     cout << "Loading " + tableFile << endl;
-    //     allTableReaderWriters[a.first]->loadFromTextFile(tableFile);
-        
-	// }
-    // // ! might switch to blus one later idks
-    // this->tableMap = allTableReaderWriters;
 }
 
 void QueryManager :: runExpression () {
@@ -66,22 +47,32 @@ void QueryManager :: runExpression () {
     for(auto v : query.getValues()){
         projections.push_back(v->toString());
         ExpType expType = v->getExpType();
+        cout << "ExpType: " << expType << endl;
         mySchemaOutAgain->appendAtt (make_pair(v->getName(), v->getAttTypePtr(catalog, tableAliases)));
         // need to fill this in
         if (expType == ExpType:: SumExp) {
             hasAggregation = true;
-            aggsToCompute.push_back(make_pair(MyDB_AggType::Sum, v->toString()));
+            string push = v->toString().substr(4);
+            int len = push.size();
+            push = push.substr(0, len -1);
+            aggsToCompute.push_back(make_pair(MyDB_AggType::Sum, push));
         } 
         else if (expType == ExpType:: AvgExp) {
             hasAggregation = true;
-            aggsToCompute.push_back(make_pair(MyDB_AggType::Avg, v->toString()));
+            string push = v->toString().substr(4);
+            int len = push.size();
+            push = push.substr(0, len -1);
+            aggsToCompute.push_back(make_pair(MyDB_AggType::Avg, push));
         } 
         else { // NonAggType
-            // !! Not sure if this should be here or below at line 99
-            groupings.push_back(v->toString());
-            cout << "Grouping:" << v->toString() << endl;
+            // // !! Not sure if this should be here or below at line 99
+            // groupings.push_back(v->toString());
+            // cout << "Grouping:" << v->toString() << endl;
         }
     }
+
+
+
     
     /* Parse allDisjunctions */
     vector<string> allPredicates;
@@ -98,9 +89,11 @@ void QueryManager :: runExpression () {
     }
     
     /* Parse groupingClauses */
-    // for (auto g : query.getGroupings()) {
-    //     groupings.push_back(g->toString());
-    // }
+    cout << "Groupings\n";
+    for (auto g : query.getGroupings()) {
+        cout << g->toString() << endl;
+        groupings.push_back(g->toString());
+    }
 
     cout << "Grouping size: " << groupings.size() << endl;
 

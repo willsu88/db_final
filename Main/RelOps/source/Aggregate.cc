@@ -19,6 +19,15 @@ Aggregate :: Aggregate (MyDB_TableReaderWriterPtr inputIn, MyDB_TableReaderWrite
 	aggsToCompute = aggsToComputeIn;
 	groupings = groupingsIn;
 	selectionPredicate = selectionPredicateIn;
+	cout << "Aggregates: \n";
+	for(auto ag: aggsToCompute) {
+		cout << ag.second << endl;
+	}
+	cout << "Groupings: \n";
+	for(auto g: groupings) {
+		cout << g << endl;
+	}
+	cout <<  "Selection pred: " << selectionPredicate << endl; 
 
 }
 

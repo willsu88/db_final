@@ -25,9 +25,7 @@ public:
 	virtual string toString () = 0;
 	virtual ~ExprTree () {}
 
-	ExpType getExpType() {
-		return ExpType :: NonAgg;
-	}
+	virtual ExpType getExpType() = 0;
 	virtual AttType getAttType() = 0;
 	virtual MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) = 0;
 	virtual string getName() = 0;
@@ -54,6 +52,10 @@ public:
 
 	AttType getAttType() {
 		return BoolType;
+	}
+
+	ExpType getExpType() {
+		return ExpType :: NonAgg;
 	}
 
 	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
@@ -86,6 +88,10 @@ public:
 		return NumType;
 	}
 
+	ExpType getExpType() {
+		return ExpType :: NonAgg;
+	}
+
 	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
 		return make_shared <MyDB_DoubleAttType> ();
 	}
@@ -115,6 +121,10 @@ public:
 
 	AttType getAttType() {
 		return NumType;
+	}
+
+	ExpType getExpType() {
+		return ExpType :: NonAgg;
 	}
 
 	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
@@ -149,6 +159,10 @@ public:
 		return StringType;
 	}
 
+	ExpType getExpType() {
+		return ExpType :: NonAgg;
+	}
+
 	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
 		return make_shared <MyDB_StringAttType> ();
 	}
@@ -177,6 +191,10 @@ public:
 	string toString () {
 		return "[" + attName + "]";
 	}	
+
+	ExpType getExpType() {
+		return ExpType :: NonAgg;
+	}
 
 	~Identifier () {}
 
@@ -235,6 +253,10 @@ public:
 		return "- (" + lhs->toString () + ", " + rhs->toString () + ")";
 	}	
 
+	ExpType getExpType() {
+		return ExpType :: NonAgg;
+	}
+
 	~MinusOp () {}
 
 	AttType getAttType() {
@@ -266,6 +288,10 @@ public:
 
 	string toString () {
 		return "+ (" + lhs->toString () + ", " + rhs->toString () + ")";
+	}
+
+	ExpType getExpType() {
+		return ExpType :: NonAgg;
 	}	
 
 	~PlusOp () {}
@@ -305,6 +331,10 @@ public:
 
 	string toString () {
 		return "* (" + lhs->toString () + ", " + rhs->toString () + ")";
+	}
+
+	ExpType getExpType() {
+		return ExpType :: NonAgg;
 	}	
 
 	~TimesOp () {}
@@ -338,6 +368,10 @@ public:
 
 	string toString () {
 		return "/ (" + lhs->toString () + ", " + rhs->toString () + ")";
+	}
+
+	ExpType getExpType() {
+		return ExpType :: NonAgg;
 	}	
 
 	~DivideOp () {}
@@ -367,6 +401,10 @@ public:
 	GtOp (ExprTreePtr lhsIn, ExprTreePtr rhsIn) {
 		lhs = lhsIn;
 		rhs = rhsIn;
+	}
+
+	ExpType getExpType() {
+		return ExpType :: NonAgg;
 	}
 
 	string toString () {
@@ -404,6 +442,10 @@ public:
 
 	string toString () {
 		return "< (" + lhs->toString () + ", " + rhs->toString () + ")";
+	}
+
+	ExpType getExpType() {
+		return ExpType :: NonAgg;
 	}	
 
 	~LtOp () {}
@@ -437,6 +479,10 @@ public:
 
 	string toString () {
 		return "!= (" + lhs->toString () + ", " + rhs->toString () + ")";
+	}
+
+	ExpType getExpType() {
+		return ExpType :: NonAgg;
 	}	
 
 	~NeqOp () {}
@@ -470,6 +516,10 @@ public:
 
 	string toString () {
 		return "|| (" + lhs->toString () + ", " + rhs->toString () + ")";
+	}
+
+	ExpType getExpType() {
+		return ExpType :: NonAgg;
 	}	
 
 	~OrOp () {}
@@ -503,6 +553,10 @@ public:
 
 	string toString () {
 		return "== (" + lhs->toString () + ", " + rhs->toString () + ")";
+	}
+
+	ExpType getExpType() {
+		return ExpType :: NonAgg;
 	}	
 
 	~EqOp () {}
@@ -530,6 +584,10 @@ public:
 
 	NotOp (ExprTreePtr childIn) {
 		child = childIn;
+	}
+
+	ExpType getExpType() {
+		return ExpType :: NonAgg;
 	}
 
 	string toString () {
@@ -563,15 +621,15 @@ public:
 		child = childIn;
 	}
 
+	ExpType getExpType() {
+		return ExpType :: SumExp;
+	}
+
 	string toString () {
 		return "sum(" + child->toString () + ")";
 	}	
 
 	~SumOp () {}
-
-	ExpType getExpType() {
-		return ExpType :: SumExp;
-	}
 
 	AttType getAttType() {
 		return NumType;
@@ -603,11 +661,11 @@ public:
 		return "avg(" + child->toString () + ")";
 	}	
 
-	~AvgOp () {}
-
 	ExpType getExpType() {
 		return ExpType :: AvgExp;
 	}
+
+	~AvgOp () {}
 
 	AttType getAttType() {
 		return NumType;

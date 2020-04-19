@@ -22,11 +22,8 @@ class QueryManager{
     private:
         SQLStatement *statement;
         MyDB_BufferManagerPtr bufMgrPtr;
-        map <string, MyDB_TableReaderWriterPtr> tableMap;
-        MyDB_CatalogPtr catalog;
-        map <string, MyDB_TablePtr> allTables;
         map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters;
-    	map <string, MyDB_BPlusTreeReaderWriterPtr> allBPlusReaderWriters;
+        MyDB_CatalogPtr catalog;
 
 
 };

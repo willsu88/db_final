@@ -15,11 +15,12 @@ RegularSelection :: RegularSelection (MyDB_TableReaderWriterPtr inputIn, MyDB_Ta
 
 void RegularSelection :: run () {
 	
+	cout << "Projections: \n";
 	for (auto pro : projections) {
 		cout << pro << endl;
 	}
 	
-	cout << "Selection: " << selectionPredicate << endl;
+	cout << "Selection: \n" << selectionPredicate << endl;
 	MyDB_RecordPtr inputRec = input->getEmptyRecord ();
 	MyDB_RecordPtr outputRec = output->getEmptyRecord ();
 	
@@ -33,9 +34,9 @@ void RegularSelection :: run () {
 
 	// now, iterate through the B+-tree query results
 	MyDB_RecordIteratorAltPtr myIter = input->getIteratorAlt ();
-
+	long counter = 0;
 	while (myIter->advance ()) {
-
+		counter++;
 		myIter->getCurrent (inputRec);
 		
 		// see if it is accepted by the predicate
@@ -52,6 +53,7 @@ void RegularSelection :: run () {
 		outputRec->recordContentHasChanged ();
 		output->append (outputRec);
 	}
+	cout << counter << " num of records\n";
 }
 
 #endif
