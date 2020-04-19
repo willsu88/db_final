@@ -117,7 +117,9 @@ void Aggregate :: run () {
 		}
 
 		if (s.first == MyDB_AggType :: Avg) {
+			cout << "/ ([MyDB_AggAtt" + to_string (i) + "], [MyDB_CntAtt])\n";
 			finalAggComps.push_back (combinedRec->compileComputation ("/ ([MyDB_AggAtt" + to_string (i++) + "], [MyDB_CntAtt])"));
+			cout<< "Made the final divide for avg\n";
 		} else {
 			finalAggComps.push_back (combinedRec->compileComputation ("[MyDB_AggAtt" + to_string (i++) + "]"));
 		}

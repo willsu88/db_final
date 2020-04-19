@@ -65,9 +65,8 @@ void QueryManager :: runExpression () {
             aggsToCompute.push_back(make_pair(MyDB_AggType::Avg, push));
         } 
         else { // NonAggType
-            // // !! Not sure if this should be here or below at line 99
-            // groupings.push_back(v->toString());
-            // cout << "Grouping:" << v->toString() << endl;
+            groupings.push_back(v->toString());
+            cout << "Grouping:" << v->toString() << endl;
         }
     }
 
@@ -88,12 +87,10 @@ void QueryManager :: runExpression () {
         }
     }
     
-    /* Parse groupingClauses */
-    cout << "Groupings\n";
-    for (auto g : query.getGroupings()) {
-        cout << g->toString() << endl;
-        groupings.push_back(g->toString());
-    }
+    // /* Parse groupingClauses */
+    // for (auto g : query.getGroupings()) {
+    //     groupings.push_back(g->toString());
+    // }
 
     cout << "Grouping size: " << groupings.size() << endl;
 
