@@ -512,6 +512,8 @@ pair <func, MyDB_AttTypePtr> MyDB_Record :: times (pair <func, MyDB_AttTypePtr> 
 pair <func, MyDB_AttTypePtr> MyDB_Record :: divide (pair <func, MyDB_AttTypePtr> lhs, pair <func, MyDB_AttTypePtr> rhs) {
 
 	// if both sides can be cast upwards to be ints, then do so
+	cout << "AttType lhs: " << lhs.second->toString() << endl;
+	cout << "AttType rhs: " << rhs.second->toString() << endl;
 	if (lhs.second->promotableToInt () && rhs.second->promotableToInt ()) {
 		MyDB_IntAttValPtr temp = make_shared <MyDB_IntAttVal> ();
 		scratch.push_back (temp);

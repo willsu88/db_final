@@ -19,6 +19,7 @@ QueryManager :: QueryManager (SQLStatement *_statement, MyDB_BufferManagerPtr _b
 }
 
 void QueryManager :: runExpression () {
+    
     auto start = chrono::steady_clock::now();
 
     cout << "run expression starting" << endl;
@@ -43,12 +44,15 @@ void QueryManager :: runExpression () {
     //Might need to join other stuff
     inputTablePtr = allTableReaderWriters[tableToProcess.front().first];
 
+    vector<pair<string, MyDB_AttTypePtr>> groupSchema;
+    vector<pair<string, MyDB_AttTypePtr>> aggSchema;
+
 	/* Parse valuesToSelect */
     for(auto v : query.getValues()){
         projections.push_back(v->toString());
         ExpType expType = v->getExpType();
-        cout << "ExpType: " << expType << endl;
-        mySchemaOutAgain->appendAtt (make_pair(v->getName(), v->getAttTypePtr(catalog, tableAliases)));
+        // cout << "ExpType: " << expType << endl;
+        // mySchemaOutAgain->appendAtt (make_pair(v->getName(), v->getAttTypePtr(catalog, tableAliases)));
         // need to fill this in
         if (expType == ExpType:: SumExp) {
             hasAggregation = true;
@@ -56,6 +60,7 @@ void QueryManager :: runExpression () {
             int len = push.size();
             push = push.substr(0, len -1);
             aggsToCompute.push_back(make_pair(MyDB_AggType::Sum, push));
+            aggSchema.push_back(make_pair(v->getName(), v->getAttTypePtr(catalog, tableAliases)));
         } 
         else if (expType == ExpType:: AvgExp) {
             hasAggregation = true;
@@ -63,11 +68,21 @@ void QueryManager :: runExpression () {
             int len = push.size();
             push = push.substr(0, len -1);
             aggsToCompute.push_back(make_pair(MyDB_AggType::Avg, push));
+            aggSchema.push_back(make_pair(v->getName(), v->getAttTypePtr(catalog, tableAliases)));
         } 
         else { // NonAggType
             groupings.push_back(v->toString());
+            groupSchema.push_back(make_pair(v->getName(), v->getAttTypePtr(catalog, tableAliases)));
             cout << "Grouping:" << v->toString() << endl;
         }
+    }
+
+    for (auto g : groupSchema) {
+        mySchemaOutAgain->appendAtt(g);
+    }
+
+    for (auto ag: aggSchema) {
+        mySchemaOutAgain->appendAtt(ag);
     }
 
 
@@ -97,6 +112,7 @@ void QueryManager :: runExpression () {
     /* Use the schema we created to get a outputTablePtr */ 
     MyDB_TablePtr outTable = make_shared<MyDB_Table>("TableOut", "TableOut.bin", mySchemaOutAgain);
     outputTablePtr = make_shared<MyDB_TableReaderWriter>(outTable, this->bufMgrPtr);
+
     /* Distingush between aggregation and regular selection */
     if (hasAggregation) {
         cout << "doing aggregation\n";

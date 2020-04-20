@@ -37,6 +37,11 @@ where
 group by
 	l.l_returnflag;
 
+### Our Result ###
+Record 0: return flag was N|7826475.000000|11731187444.120041|11144649274.750301|11590849811.731108|25.487758|38203.874855|0.049994|307068.000000|
+Total number of records is: 1
+Total time taken is: 8 sec
+
 
 ### Database Results ###
 output				sum				sum					sum					sum						avg						avg						avg							sum
