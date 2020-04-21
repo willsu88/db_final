@@ -18,6 +18,51 @@ QueryManager :: QueryManager (SQLStatement *_statement, MyDB_BufferManagerPtr _b
     this->allTableReaderWriters = _allTableReaderWriters;
 }
 
+MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
+    vector<pair<string, string>> tableToProcess, vector<ExprTree> allDisjunctions, map <string, string> tableAliases) {
+
+    set<MyDB_TableReaderWriterPtr> all_tables; 
+
+    /* Find the smallest table first */
+    MyDB_TableReaderWriterPtr cur_table = this->allTableReaderWriters[tableToProcess.front().first];
+    all_tables.insert(cur_table);
+
+    for (int i = 1; i < tableToProcess.size(); i++) {
+        MyDB_TableReaderWriterPtr next_table = this->allTableReaderWriters[tableToProcess[i]];
+        all_tables.insert(next_table);
+
+        size_t cur_size = cur_table->getTable()->getTupleCount();
+        size_t next_size = next_table->getTable()->getTupleCount();
+        if (next_size < cur_size) 
+            cur_table = next_table;
+    }
+
+    
+    /* ! Separate disjunctions to only have equality */
+    for (auto d: allDisjunctions) {
+        // d->calculateCost(this->allTableReaderWriters, tableAliases);
+    }
+    
+    /* Greedy */
+    all_tables.erase(cur_table); 
+    while (all_tables.size() > 1) {
+        // for all tables
+            // if cur table and new table is in disjunctions: calculate cost
+            // else calculate cost cost of cross join
+
+            // ! need to think about combined tables, how to calcualte cost after that
+    }
+
+    // Greedy join: 
+        //while(tables still exist in vector)
+            // find the table with the smallest result when joined with cur table
+            // join cur table with that table
+    
+    // return cur_table
+
+    return nullptr;
+}
+
 void QueryManager :: runExpression () {
     
     auto start = chrono::steady_clock::now();
@@ -41,9 +86,6 @@ void QueryManager :: runExpression () {
         tableAliases[p.second] = p.first;
     }
 
-    //Might need to join other stuff
-    inputTablePtr = allTableReaderWriters[tableToProcess.front().first];
-
     vector<pair<string, MyDB_AttTypePtr>> groupSchema;
     vector<pair<string, MyDB_AttTypePtr>> aggSchema;
 
@@ -51,9 +93,6 @@ void QueryManager :: runExpression () {
     for(auto v : query.getValues()){
         projections.push_back(v->toString());
         ExpType expType = v->getExpType();
-        // cout << "ExpType: " << expType << endl;
-        // mySchemaOutAgain->appendAtt (make_pair(v->getName(), v->getAttTypePtr(catalog, tableAliases)));
-        // need to fill this in
         if (expType == ExpType:: SumExp) {
             hasAggregation = true;
             string push = v->toString().substr(4);
@@ -85,15 +124,13 @@ void QueryManager :: runExpression () {
         mySchemaOutAgain->appendAtt(ag);
     }
 
-
-
-    
     /* Parse allDisjunctions */
     vector<string> allPredicates;
     for(auto d : query.getDisjunctions()){
         allPredicates.push_back(d->toString());
     }
 
+    //Todo: make this a function
     /* Combine all predicates into one string */
     selectionPredicate = allPredicates.front();
     if (allPredicates.size() > 1) {
@@ -101,14 +138,24 @@ void QueryManager :: runExpression () {
             selectionPredicate =  "&& (" + selectionPredicate + ", " + allPredicates[i] + ")";
         }
     }
+
+    //Might need to join other stuff
+    if (tableToProcess.size() == 1) {
+        inputTablePtr = allTableReaderWriters[tableToProcess.front().first];
+    } else {
+        /* Project tables first for optimization */
+        // if disjunction belongs to one table, do selection on that table.
+        // Group disjunctions into same tables and do one selection on that table.
+
+        // construct SQLstatement , allTableREadersWriters (just one table)
+        
+        //todo: maybe add something to ExprTree to get num of tables
+
+        /* Replace allTableReaderWriter with new pointers */
+
+        inputTablePtr = this->joinOptimization(tableToProcess, query.getDisjunctions(), tableAliases);
+    }
     
-    // /* Parse groupingClauses */
-    // for (auto g : query.getGroupings()) {
-    //     groupings.push_back(g->toString());
-    // }
-
-    cout << "Grouping size: " << groupings.size() << endl;
-
     /* Use the schema we created to get a outputTablePtr */ 
     MyDB_TablePtr outTable = make_shared<MyDB_Table>("TableOut", "TableOut.bin", mySchemaOutAgain);
     outputTablePtr = make_shared<MyDB_TableReaderWriter>(outTable, this->bufMgrPtr);

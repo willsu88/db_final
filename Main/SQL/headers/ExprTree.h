@@ -13,7 +13,7 @@ using namespace std;
 class ExprTree;
 typedef shared_ptr <ExprTree> ExprTreePtr;
 
-enum ExpType {SumExp, AvgExp, NonAgg};
+enum ExpType {SumExp, AvgExp, IdenExp, NonAgg};
 enum AttType {BoolType, NumType, StringType};
 
 // this class encapsules a parsed SQL expression (such as "this.that > 34.5 AND 4 = 5")
@@ -29,6 +29,7 @@ public:
 	virtual AttType getAttType() = 0;
 	virtual MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) = 0;
 	virtual string getName() = 0;
+	virtual size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) = 0;
 	
 };
 
@@ -65,6 +66,10 @@ public:
 	string getName() {
 		return "Bool";
 	}
+
+	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
+		return 0;
+	}
 	
 };
 
@@ -98,6 +103,10 @@ public:
 
 	string getName() {
 		return "Number";
+	}
+
+	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
+		return 0;
 	}
 
 };
@@ -135,6 +144,10 @@ public:
 		return "Number";
 	}
 
+	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
+		return 0;
+	}
+
 };
 
 class StringLiteral : public ExprTree {
@@ -170,6 +183,10 @@ public:
 	string getName() {
 		return "Number";
 	}
+
+	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
+		return 0;
+	}
 };
 
 class Identifier : public ExprTree {
@@ -193,7 +210,7 @@ public:
 	}	
 
 	ExpType getExpType() {
-		return ExpType :: NonAgg;
+		return ExpType :: IdenExp;
 	}
 
 	~Identifier () {}
@@ -231,7 +248,11 @@ public:
 	}
 
 	string getName() {
-		return "[" + attName + "]";
+		return  tableName + "_" + attName;
+	}
+
+	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
+		return 0;
 	}
 };
 
@@ -269,6 +290,10 @@ public:
 
 	string getName() {
 		return "Number";
+	}
+
+	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
+		return 0;
 	}
 };
 
@@ -312,6 +337,10 @@ public:
 		return "Number";
 	}
 
+	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
+		return 0;
+	}
+
 
 };
 
@@ -350,6 +379,10 @@ public:
 	string getName() {
 		return "Number";
 	}
+
+	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
+		return 0;
+	}
 };
 
 class DivideOp : public ExprTree {
@@ -386,7 +419,10 @@ public:
 	string getName() {
 		return "Number";
 	}
-	
+
+	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
+		return 0;
+	}
 };
 
 class GtOp : public ExprTree {
@@ -423,6 +459,10 @@ public:
 
 	string getName() {
 		return "Number";
+	}
+
+	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
+		return 0;
 	}
 };
 
@@ -461,6 +501,10 @@ public:
 	string getName() {
 		return "Number";
 	}
+
+	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
+		return 0;
+	}
 };
 
 class NeqOp : public ExprTree {
@@ -497,6 +541,10 @@ public:
 
 	string getName() {
 		return "Number";
+	}
+
+	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
+		return 0;  //! not sure
 	}
 };
 
@@ -535,6 +583,10 @@ public:
 	string getName() {
 		return "Number";
 	}
+
+	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
+		return 0;
+	}
 };
 
 class EqOp : public ExprTree {
@@ -572,6 +624,35 @@ public:
 	string getName() {
 		return "Number";
 	}
+
+	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
+
+		if (lhs->getExpType() == ExpType :: IdenExp && rhs->getExpType() == ExpType :: IdenExp) {
+			string leftName = lhs->getName();
+			string rightName = rhs->getName();
+			string leftTableName = leftName.substr(0, leftName.find('_'));
+			string rightTableName = rightName.substr(0, rightName.find('_'));
+			string leftAttName = leftName.substr(leftName.find('_') + 1);
+			string rightAttName = rightName.substr(rightName.find('_') + 1);
+
+			MyDB_TableReaderWriterPtr leftTablePtr = allTableReaderWriters[tableAliases[leftTableName]];
+			MyDB_TableReaderWriterPtr rightTablePtr = allTableReaderWriters[tableAliases[rightTableName]];
+
+			size_t leftT = leftTablePtr->getTable()->getTupleCount();
+			size_t rightT = rightTablePtr->getTable()->getTupleCount();
+
+			size_t leftV = leftTablePtr->getTable()->getDistinctValues(leftAttName);
+			size_t rightV = rightTablePtr->getTable()->getDistinctValues(rightAttName);
+
+			size_t minV = min(leftV, rightV);
+
+			return (leftT * rightT * minV) / (leftV * rightV);
+
+		} else {
+			return 0;
+		}
+
+	}
 };
 
 class NotOp : public ExprTree {
@@ -606,6 +687,9 @@ public:
 
 	string getName() {
 		return "Number";
+	}
+	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
+		return 0;
 	}
 };
 
@@ -643,6 +727,10 @@ public:
 		return "Sum";
 	}
 
+	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
+		return 0;
+	}
+
 };
 
 class AvgOp : public ExprTree {
@@ -677,6 +765,10 @@ public:
 
 	string getName() {
 		return "Avg";
+	}
+
+	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
+		return 0;
 	}
 };
 
