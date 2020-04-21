@@ -11,6 +11,7 @@
 
 using namespace std;
 
+// I think only bufMgr and catalog are needed
 QueryManager :: QueryManager (SQLStatement *_statement, MyDB_BufferManagerPtr _bufMgrPtr, MyDB_CatalogPtr _catalog, map <string, MyDB_TableReaderWriterPtr> _allTableReaderWriters) {
     this->statement = _statement;
     this->bufMgrPtr = _bufMgrPtr;
@@ -63,24 +64,31 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
     return nullptr;
 }
 
-void QueryManager :: runExpression () {
+// vector <ExprTreePtr> valuesToSelect;
+// vector <pair <string, string>> tablesToProcess;
+// vector <ExprTreePtr> allDisjunctions;
+// vector <ExprTreePtr> groupingClauses;
+// map<string, MyDB_TableReaderWriterPtr> tableMap;
+void QueryManager :: runExpression (vector <ExprTreePtr> valuesToSelect, vector <pair <string, string>> tablesToProcess,
+vector <ExprTreePtr> allDisjunctions, vector <ExprTreePtr> groupingClauses, map<string, MyDB_TableReaderWriterPtr> tableMap) {
     
     auto start = chrono::steady_clock::now();
 
-    cout << "run expression starting" << endl;
-    /* Data Structures Needed */
-    MyDB_TableReaderWriterPtr inputTablePtr = nullptr;
-    MyDB_TableReaderWriterPtr outputTablePtr = nullptr;
-    MyDB_SchemaPtr mySchemaOutAgain  = make_shared <MyDB_Schema> ();
- 	vector <string> groupings;
-    string selectionPredicate;
-    vector <string> projections; // For RegularSelection
-    vector <pair <MyDB_AggType, string>> aggsToCompute; // For Aggregates
-    bool hasAggregation = false;
+    if (tablesToProcess.size() != 1) {
+        /* Project tables first for optimization */
+        // if disjunction belongs to one table, do selection on that table.
+        // Group disjunctions into same tables and do one selection on that table.
 
-    SFWQuery query = statement->getSFW();
-    /* Create the MyDB_TableReaderWriterPtr inputin for RegularSelection by joining all the tables from SFWQuery */
-    vector<pair<string, string>> tableToProcess = query.getTables();    
+        // construct SQLstatement , allTableREadersWriters (just one table)
+        
+        //todo: maybe add something to ExprTree to get num of tables
+
+        /* Replace allTableReaderWriter with new pointers */
+
+        // inputTablePtr = this->joinOptimization(tableToProcess, query.getDisjunctions(), tableAliases);
+        joinOptimization(tablesToProcess, allDisjunctions, tableMap);
+    }
+
     map <string, string> tableAliases;
     for (auto p : tableToProcess) {
         tableAliases[p.second] = p.first;
@@ -88,9 +96,13 @@ void QueryManager :: runExpression () {
 
     vector<pair<string, MyDB_AttTypePtr>> groupSchema;
     vector<pair<string, MyDB_AttTypePtr>> aggSchema;
+    vector <pair <MyDB_AggType, string>> aggsToCompute; // For Aggregates
+    vector <string> groupings;
+    vector <string> projections; // For RegularSelection
+    bool hasAggregation = false;
 
 	/* Parse valuesToSelect */
-    for(auto v : query.getValues()){
+    for(auto v : valuesToSelect){
         projections.push_back(v->toString());
         ExpType expType = v->getExpType();
         if (expType == ExpType:: SumExp) {
@@ -116,6 +128,9 @@ void QueryManager :: runExpression () {
         }
     }
 
+
+    MyDB_SchemaPtr mySchemaOutAgain  = make_shared <MyDB_Schema> ();
+
     for (auto g : groupSchema) {
         mySchemaOutAgain->appendAtt(g);
     }
@@ -126,39 +141,25 @@ void QueryManager :: runExpression () {
 
     /* Parse allDisjunctions */
     vector<string> allPredicates;
-    for(auto d : query.getDisjunctions()){
+    for(auto d : allDisjunctions){
         allPredicates.push_back(d->toString());
     }
 
     //Todo: make this a function
     /* Combine all predicates into one string */
-    selectionPredicate = allPredicates.front();
+    
+    string selectionPredicate = allPredicates.front();
     if (allPredicates.size() > 1) {
         for (int i = 1; i < allPredicates.size(); i++) {
             selectionPredicate =  "&& (" + selectionPredicate + ", " + allPredicates[i] + ")";
         }
     }
-
-    //Might need to join other stuff
-    if (tableToProcess.size() == 1) {
-        inputTablePtr = allTableReaderWriters[tableToProcess.front().first];
-    } else {
-        /* Project tables first for optimization */
-        // if disjunction belongs to one table, do selection on that table.
-        // Group disjunctions into same tables and do one selection on that table.
-
-        // construct SQLstatement , allTableREadersWriters (just one table)
-        
-        //todo: maybe add something to ExprTree to get num of tables
-
-        /* Replace allTableReaderWriter with new pointers */
-
-        inputTablePtr = this->joinOptimization(tableToProcess, query.getDisjunctions(), tableAliases);
-    }
+    
+    MyDB_TableReaderWriterPtr inputTablePtr = tableMap[tableToProcess.front().first];
     
     /* Use the schema we created to get a outputTablePtr */ 
     MyDB_TablePtr outTable = make_shared<MyDB_Table>("TableOut", "TableOut.bin", mySchemaOutAgain);
-    outputTablePtr = make_shared<MyDB_TableReaderWriter>(outTable, this->bufMgrPtr);
+    MyDB_TableReaderWriterPtr outputTablePtr = make_shared<MyDB_TableReaderWriter>(outTable, this->bufMgrPtr);
 
     /* Distingush between aggregation and regular selection */
     if (hasAggregation) {
@@ -172,10 +173,7 @@ void QueryManager :: runExpression () {
         selection->run();
     }
 
-    cout << "Finished selection\n";
-
     /* Print out the first 30 records */
-    // TODO: need to calculate and print query time
     MyDB_RecordPtr rec = outputTablePtr->getEmptyRecord();
     MyDB_RecordIteratorAltPtr iter = outputTablePtr->getIteratorAlt();
 
