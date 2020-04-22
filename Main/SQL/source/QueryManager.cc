@@ -20,39 +20,9 @@ QueryManager :: QueryManager (SQLStatement *_statement, MyDB_BufferManagerPtr _b
 }
 
 MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
-    vector<pair<string, string>> tableToProcess, vector<ExprTree> allDisjunctions, map <string, string> tableAliases) {
+    vector<pair<string, string>> tableToProcess, vector<ExprTreePtr> allDisjunctions, map <string, MyDB_TableReaderWriterPtr> tableMap, MyDB_TableReaderWriterPtr cur_table) {
 
-    set<MyDB_TableReaderWriterPtr> all_tables; 
 
-    /* Find the smallest table first */
-    MyDB_TableReaderWriterPtr cur_table = this->allTableReaderWriters[tableToProcess.front().first];
-    all_tables.insert(cur_table);
-
-    for (int i = 1; i < tableToProcess.size(); i++) {
-        MyDB_TableReaderWriterPtr next_table = this->allTableReaderWriters[tableToProcess[i]];
-        all_tables.insert(next_table);
-
-        size_t cur_size = cur_table->getTable()->getTupleCount();
-        size_t next_size = next_table->getTable()->getTupleCount();
-        if (next_size < cur_size) 
-            cur_table = next_table;
-    }
-
-    
-    /* ! Separate disjunctions to only have equality */
-    for (auto d: allDisjunctions) {
-        // d->calculateCost(this->allTableReaderWriters, tableAliases);
-    }
-    
-    /* Greedy */
-    all_tables.erase(cur_table); 
-    while (all_tables.size() > 1) {
-        // for all tables
-            // if cur table and new table is in disjunctions: calculate cost
-            // else calculate cost cost of cross join
-
-            // ! need to think about combined tables, how to calcualte cost after that
-    }
 
     // Greedy join: 
         //while(tables still exist in vector)
@@ -69,11 +39,19 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
 // vector <ExprTreePtr> allDisjunctions;
 // vector <ExprTreePtr> groupingClauses;
 // map<string, MyDB_TableReaderWriterPtr> tableMap;
-void QueryManager :: runExpression (vector <ExprTreePtr> valuesToSelect, vector <pair <string, string>> tablesToProcess,
-vector <ExprTreePtr> allDisjunctions, vector <ExprTreePtr> groupingClauses, map<string, MyDB_TableReaderWriterPtr> tableMap) {
+void QueryManager :: runExpression () {
     
     auto start = chrono::steady_clock::now();
 
+
+    MyDB_TableReaderWriterPtr inputTablePtr;
+
+    map<string, MyDB_TableReaderWriterPtr> tableMap = allTableReaderWriters;
+
+    SFWQuery query = statement->getSFW();
+    vector <ExprTreePtr> allDisjunctions = query.getDisjunctions();
+    vector <ExprTreePtr> valuesToSelect = query.getValues();
+    vector <pair <string, string>> tablesToProcess = query.getTables();
     if (tablesToProcess.size() != 1) {
         /* Project tables first for optimization */
         // if disjunction belongs to one table, do selection on that table.
@@ -86,11 +64,27 @@ vector <ExprTreePtr> allDisjunctions, vector <ExprTreePtr> groupingClauses, map<
         /* Replace allTableReaderWriter with new pointers */
 
         // inputTablePtr = this->joinOptimization(tableToProcess, query.getDisjunctions(), tableAliases);
-        joinOptimization(tablesToProcess, allDisjunctions, tableMap);
+
+
+        /* Find the smallest table first */
+        MyDB_TableReaderWriterPtr cur_table = tableMap[tablesToProcess.front().first];
+
+        for (int i = 1; i < tablesToProcess.size(); i++) {
+            MyDB_TableReaderWriterPtr next_table = tableMap[tablesToProcess[i].first];
+
+            size_t cur_size = cur_table->getTable()->getTupleCount();
+            size_t next_size = next_table->getTable()->getTupleCount();
+            if (next_size < cur_size) 
+                cur_table = next_table;
+        }
+
+        inputTablePtr = joinOptimization(tablesToProcess, allDisjunctions, tableMap, cur_table);
+    } else {
+        inputTablePtr = tableMap[tablesToProcess.front().first];
     }
 
     map <string, string> tableAliases;
-    for (auto p : tableToProcess) {
+    for (auto p : tablesToProcess) {
         tableAliases[p.second] = p.first;
     }
 
@@ -155,7 +149,7 @@ vector <ExprTreePtr> allDisjunctions, vector <ExprTreePtr> groupingClauses, map<
         }
     }
     
-    MyDB_TableReaderWriterPtr inputTablePtr = tableMap[tableToProcess.front().first];
+    
     
     /* Use the schema we created to get a outputTablePtr */ 
     MyDB_TablePtr outTable = make_shared<MyDB_Table>("TableOut", "TableOut.bin", mySchemaOutAgain);

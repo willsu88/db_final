@@ -3,6 +3,7 @@
 #define SQL_EXPRESSIONS
 
 #include "MyDB_AttType.h"
+#include "MyDB_TableReaderWriter.h"
 #include <string>
 #include <vector>
 #include <map>
@@ -30,7 +31,7 @@ public:
 	virtual MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) = 0;
 	virtual string getName() = 0;
 	virtual size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) = 0;
-	
+	virtual pair<string, string> getTable() = 0;
 };
 
 class BoolLiteral : public ExprTree {
@@ -70,6 +71,10 @@ public:
 	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
 		return 0;
 	}
+
+	pair<string, string> getTable() {
+		return make_pair("","");
+	}
 	
 };
 
@@ -107,6 +112,10 @@ public:
 
 	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
 		return 0;
+	}
+
+	pair<string, string> getTable() {
+		return make_pair("","");
 	}
 
 };
@@ -148,6 +157,10 @@ public:
 		return 0;
 	}
 
+	pair<string, string> getTable() {
+		return make_pair("","");
+	}
+
 };
 
 class StringLiteral : public ExprTree {
@@ -186,6 +199,10 @@ public:
 
 	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
 		return 0;
+	}
+
+	pair<string, string> getTable() {
+		return make_pair("","");
 	}
 };
 
@@ -254,6 +271,10 @@ public:
 	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
 		return 0;
 	}
+
+	pair<string, string> getTable() {
+		return make_pair(tableName,"");
+	}
 };
 
 class MinusOp : public ExprTree {
@@ -294,6 +315,10 @@ public:
 
 	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
 		return 0;
+	}
+
+	pair<string, string> getTable() {
+		return make_pair("","");
 	}
 };
 
@@ -341,6 +366,10 @@ public:
 		return 0;
 	}
 
+	pair<string, string> getTable() {
+		return make_pair("","");
+	}
+
 
 };
 
@@ -383,6 +412,10 @@ public:
 	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
 		return 0;
 	}
+
+	pair<string, string> getTable() {
+		return make_pair("","");
+	}
 };
 
 class DivideOp : public ExprTree {
@@ -422,6 +455,10 @@ public:
 
 	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
 		return 0;
+	}
+
+	pair<string, string> getTable() {
+		return make_pair("","");
 	}
 };
 
@@ -464,6 +501,26 @@ public:
 	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
 		return 0;
 	}
+
+	pair<string, string> getTable() {
+		string leftTableName = lhs->getTable().first;
+		string rightTableName = rhs->getTable().first;
+
+		if (lhs->getExpType() == ExpType :: IdenExp && rhs->getExpType() == ExpType :: IdenExp) {			
+			if (leftTableName == rightTableName) {
+				return make_pair(leftTableName, "");
+			}
+			return make_pair(leftTableName, rightTableName);
+		} else if (lhs->getExpType() == ExpType :: IdenExp) {
+			return make_pair(leftTableName, "");
+		} else if (rhs->getExpType() == ExpType :: IdenExp) {
+			return make_pair(rightTableName, "");
+		}
+
+		cout << "Equality getTable no identifier\n";
+		return make_pair("", "");
+		
+	}
 };
 
 class LtOp : public ExprTree {
@@ -504,6 +561,26 @@ public:
 
 	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
 		return 0;
+	}
+
+	pair<string, string> getTable() {
+		string leftTableName = lhs->getTable().first;
+		string rightTableName = rhs->getTable().first;
+
+		if (lhs->getExpType() == ExpType :: IdenExp && rhs->getExpType() == ExpType :: IdenExp) {			
+			if (leftTableName == rightTableName) {
+				return make_pair(leftTableName, "");
+			}
+			return make_pair(leftTableName, rightTableName);
+		} else if (lhs->getExpType() == ExpType :: IdenExp) {
+			return make_pair(leftTableName, "");
+		} else if (rhs->getExpType() == ExpType :: IdenExp) {
+			return make_pair(rightTableName, "");
+		}
+
+		cout << "Equality getTable no identifier\n";
+		return make_pair("", "");
+		
 	}
 };
 
@@ -546,6 +623,26 @@ public:
 	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
 		return 0;  //! not sure
 	}
+
+	pair<string, string> getTable() {
+		string leftTableName = lhs->getTable().first;
+		string rightTableName = rhs->getTable().first;
+
+		if (lhs->getExpType() == ExpType :: IdenExp && rhs->getExpType() == ExpType :: IdenExp) {			
+			if (leftTableName == rightTableName) {
+				return make_pair(leftTableName, "");
+			}
+			return make_pair(leftTableName, rightTableName);
+		} else if (lhs->getExpType() == ExpType :: IdenExp) {
+			return make_pair(leftTableName, "");
+		} else if (rhs->getExpType() == ExpType :: IdenExp) {
+			return make_pair(rightTableName, "");
+		}
+
+		cout << "Equality getTable no identifier\n";
+		return make_pair("", "");
+		
+	}
 };
 
 class OrOp : public ExprTree {
@@ -586,6 +683,26 @@ public:
 
 	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
 		return 0;
+	}
+
+	pair<string, string> getTable() {
+		string leftTableName = lhs->getTable().first;
+		string rightTableName = rhs->getTable().first;
+
+		if (leftTableName != "" && rightTableName != "") {			
+			if (leftTableName == rightTableName) {
+				return make_pair(leftTableName, "");
+			}
+			return make_pair(leftTableName, rightTableName);
+		} else if (leftTableName != "") {
+			return make_pair(leftTableName, "");
+		} else if (rightTableName != "") {
+			return make_pair(rightTableName, "");
+		}
+
+		cout << "Equality getTable no identifier\n";
+		return make_pair("", "");
+		
 	}
 };
 
@@ -653,6 +770,26 @@ public:
 		}
 
 	}
+
+	pair<string, string> getTable() {
+		string leftTableName = lhs->getTable().first;
+		string rightTableName = rhs->getTable().first;
+
+		if (lhs->getExpType() == ExpType :: IdenExp && rhs->getExpType() == ExpType :: IdenExp) {			
+			if (leftTableName == rightTableName) {
+				return make_pair(leftTableName, "");
+			}
+			return make_pair(leftTableName, rightTableName);
+		} else if (lhs->getExpType() == ExpType :: IdenExp) {
+			return make_pair(leftTableName, "");
+		} else if (rhs->getExpType() == ExpType :: IdenExp) {
+			return make_pair(rightTableName, "");
+		}
+
+		cout << "Equality getTable no identifier\n";
+		return make_pair("", "");
+		
+	}
 };
 
 class NotOp : public ExprTree {
@@ -691,6 +828,11 @@ public:
 	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
 		return 0;
 	}
+
+	pair<string, string> getTable() {
+		return child->getTable();
+	}
+	
 };
 
 class SumOp : public ExprTree {
@@ -731,6 +873,10 @@ public:
 		return 0;
 	}
 
+	pair<string, string> getTable() {
+		return make_pair("","");
+	}
+
 };
 
 class AvgOp : public ExprTree {
@@ -769,6 +915,10 @@ public:
 
 	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
 		return 0;
+	}
+
+	pair<string, string> getTable() {
+		return make_pair("","");
 	}
 };
 
