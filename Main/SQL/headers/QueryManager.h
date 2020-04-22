@@ -19,12 +19,13 @@ class QueryManager{
 
         void runExpression();
         
-        MyDB_TableReaderWriterPtr joinOptimization(vector<pair<string, string>> tableToProcess, vector<ExprTreePtr> allDisjunctions, map <string, MyDB_TableReaderWriterPtr> tableMap, MyDB_TableReaderWriterPtr cur_table);
+        MyDB_TableReaderWriterPtr joinOptimization(vector<string> tableToProcess, vector<ExprTreePtr> allDisjunctions, map <string, MyDB_TableReaderWriterPtr> tableMap, MyDB_TableReaderWriterPtr cur_table);
     private:
         SQLStatement *statement;
         MyDB_BufferManagerPtr bufMgrPtr;
         map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters;
         MyDB_CatalogPtr catalog;
+        int tempTable = 0;
 
 
 };

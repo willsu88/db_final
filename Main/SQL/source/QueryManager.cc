@@ -5,9 +5,11 @@
 #include "QueryManager.h"
 #include "MyDB_TableReaderWriter.h"
 #include "MyDB_Schema.h"
+#include "SortMergeJoin.h"
 #include "ParserTypes.h"
 #include "MyDB_Catalog.h"
 #include <chrono>
+#include <algorithm>
 
 using namespace std;
 
@@ -19,46 +21,95 @@ QueryManager :: QueryManager (SQLStatement *_statement, MyDB_BufferManagerPtr _b
     this->allTableReaderWriters = _allTableReaderWriters;
 }
 
+// ! change it so the the pass in vector of tables to process with only the shorthand strings becaue with full names it wont work for query 9 and 10 because they use the same table twice 
+// ! make it so the map is from the shorthand string to tablePtr
 MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
-    vector<pair<string, string>> tableToProcess, vector<ExprTreePtr> allDisjunctions, map <string, MyDB_TableReaderWriterPtr> tableMap, MyDB_TableReaderWriterPtr cur_table) {
+    vector<string> tableToProcess, vector<ExprTreePtr> allDisjunctions, map <string, MyDB_TableReaderWriterPtr> tableMap, MyDB_TableReaderWriterPtr cur_table) {
     
-    // ! if tables to process is zero return cur table
-    vector<pair<string, string>, string> equality_checks;
-    map<string, string> normal_disjuncts;
-    // ! loop through until you find a disjuct that has two tables and one of them belongs to cur_table
-    // ! we know it belongs if it's not in tableToProcess
-    for (auto d : allDisjunctions) {
-        pair<string, string> tables = d->getTable();
+    if (tableToProcess.size() == 0) {
+        return cur_table;
     }
-    // ! if we don't find a disjunction we just cartesian 
-    // ! else 
-    // !use to to build schema and projections ->getTable()->getSchema()->getAtts()        
-    // !use get table to get tables needed and attribute for the join
-    // !final predicate comes from the disjunction we are using
-    // !get the first one from equality checks and just join them 
-    // ! make sure to remove disjunction we use
+
+    pair<pair<string, string>, pair<string, string>> table_att;
+    pair<string, string> equality_check;// join param
+    MyDB_TableReaderWriterPtr tableToJoin;// join param
+    ExprTreePtr disjunct;// join param
+    bool found_disjunct = false;
+    for (auto d : allDisjunctions) {
+        
+        table_att = d->getTable();
+        string leftTable = table_att.first.first;
+        string rightTable = table_att.second.first;
+        // If the disjunct had two tables
+        if (leftTable != "" && rightTable != "") {
+            auto leftIt = find(tableToProcess.begin(), tableToProcess.end(), leftTable);
+            auto rightIt = find(tableToProcess.begin(), tableToProcess.end(), rightTable);
+
+            // Both tables belong to tables to process
+            if (leftIt != tableToProcess.end() && rightIt != tableToProcess.end()) {
+                continue;
+            }
+
+            found_disjunct = true;
+            disjunct = d;
+            // Means the left table is the one part of cur_table
+            if (leftIt == tableToProcess.end()) {
+                equality_check.first = table_att.first.second;
+                equality_check.second = table_att.second.second;
+                tableToJoin = tableMap[rightTable];
+            } else {
+                equality_check.first = table_att.second.second;
+                equality_check.second = table_att.first.second;
+                tableToJoin = tableMap[leftTable];
+            }
+            break;
+        } 
+
+    }
+
+    string finalPredicate;
+    if (found_disjunct) {
+        // Erase disjunct and table to process
+        tableToProcess.erase(remove(tableToProcess.begin(), tableToProcess.end(), equality_check.second), tableToProcess.end());
+        allDisjunctions.erase(remove(allDisjunctions.begin(), allDisjunctions.end(), disjunct), allDisjunctions.end());
+        finalPredicate = disjunct->toString();
+
+    } else {
+        finalPredicate = "bool[true]";
+        equality_check.first = "bool[true]";
+        equality_check.second = "bool[true]";
+
+        string randomTable = tableToProcess.front();        
+        tableToJoin = tableMap[randomTable];
+        tableToProcess.erase(remove(tableToProcess.begin(), tableToProcess.end(), randomTable), tableToProcess.end());
+    }
+
+    MyDB_SchemaPtr mySchemaOutAgain  = make_shared <MyDB_Schema> ();
+
+    // Getting projections but lazily since I get everything.
+    vector<pair<string, MyDB_AttTypePtr>> leftTableAtts = cur_table->getTable()->getSchema()->getAtts();
+    vector<pair<string, MyDB_AttTypePtr>> rightTableAtts = tableToJoin->getTable()->getSchema()->getAtts();
+
+    vector<string> projections;
+    for (auto att : leftTableAtts) {
+        projections.push_back(att.first);
+        mySchemaOutAgain->appendAtt(att);
+    }
+
+    for (auto att : rightTableAtts) {
+        projections.push_back(att.first);
+        mySchemaOutAgain->appendAtt(att);
+    }
 
 
-    // ! set cur_table as the combined table
+    MyDB_TablePtr outTable = make_shared<MyDB_Table>("temp_" + to_string(tempTable), "temp_" + to_string(tempTable) + ".bin", mySchemaOutAgain);
+    MyDB_TableReaderWriterPtr outputTablePtr = make_shared<MyDB_TableReaderWriter>(outTable, this->bufMgrPtr);
 
+    SortMergeJoin myOp (cur_table, tableToJoin, outputTablePtr, finalPredicate, projections, equality_check, "bool[true]", "bool[true]");
 
-
-
-    // Greedy join: 
-        //while(tables still exist in vector)
-            // find the table with the smallest result when joined with cur table
-            // join cur table with that table
-    
-    // return cur_table
-    // ! make sure to remove table we use from tableToProcess
-    return joinOptimization(tableToProcess, allDisjunctions, tableMap, cur_table);
+    return joinOptimization(tableToProcess, allDisjunctions, tableMap, outputTablePtr);
 }
 
-// vector <ExprTreePtr> valuesToSelect;
-// vector <pair <string, string>> tablesToProcess;
-// vector <ExprTreePtr> allDisjunctions;
-// vector <ExprTreePtr> groupingClauses;
-// map<string, MyDB_TableReaderWriterPtr> tableMap;
 void QueryManager :: runExpression () {
     
     auto start = chrono::steady_clock::now();
