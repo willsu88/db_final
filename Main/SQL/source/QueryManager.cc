@@ -21,6 +21,26 @@ QueryManager :: QueryManager (SQLStatement *_statement, MyDB_BufferManagerPtr _b
 
 MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
     vector<pair<string, string>> tableToProcess, vector<ExprTreePtr> allDisjunctions, map <string, MyDB_TableReaderWriterPtr> tableMap, MyDB_TableReaderWriterPtr cur_table) {
+    
+    // ! if tables to process is zero return cur table
+    vector<pair<string, string>, string> equality_checks;
+    map<string, string> normal_disjuncts;
+    // ! loop through until you find a disjuct that has two tables and one of them belongs to cur_table
+    // ! we know it belongs if it's not in tableToProcess
+    for (auto d : allDisjunctions) {
+        pair<string, string> tables = d->getTable();
+    }
+    // ! if we don't find a disjunction we just cartesian 
+    // ! else 
+    // !use to to build schema and projections ->getTable()->getSchema()->getAtts()        
+    // !use get table to get tables needed and attribute for the join
+    // !final predicate comes from the disjunction we are using
+    // !get the first one from equality checks and just join them 
+    // ! make sure to remove disjunction we use
+
+
+    // ! set cur_table as the combined table
+
 
 
 
@@ -30,8 +50,8 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
             // join cur table with that table
     
     // return cur_table
-
-    return nullptr;
+    // ! make sure to remove table we use from tableToProcess
+    return joinOptimization(tableToProcess, allDisjunctions, tableMap, cur_table);
 }
 
 // vector <ExprTreePtr> valuesToSelect;
@@ -77,6 +97,7 @@ void QueryManager :: runExpression () {
             if (next_size < cur_size) 
                 cur_table = next_table;
         }
+        // ! delete cur table from tables to process
 
         inputTablePtr = joinOptimization(tablesToProcess, allDisjunctions, tableMap, cur_table);
     } else {

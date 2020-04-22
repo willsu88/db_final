@@ -31,7 +31,8 @@ public:
 	virtual MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) = 0;
 	virtual string getName() = 0;
 	virtual size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) = 0;
-	virtual pair<string, string> getTable() = 0;
+	// <tablename1, attname1> <tablename2, attname2> 
+	virtual pair<pair<string, string>, pair<string, string>> getTable() = 0;
 };
 
 class BoolLiteral : public ExprTree {
@@ -502,15 +503,25 @@ public:
 		return 0;
 	}
 
-	pair<string, string> getTable() {
-		string leftTableName = lhs->getTable().first;
-		string rightTableName = rhs->getTable().first;
+	pair<pair<string, string>, pair<string, string>> getTable() {
+		pair<string, string> leftName = lhs->getTable().first;
+		pair<string, string> rightName = rhs->getTable().first;
+		string leftTableName = leftName.first;
+		string rightTableName = rightName.first;
+		string leftAttName = leftName.second;
+		string rightAttName = rightName.second;
 
-		if (lhs->getExpType() == ExpType :: IdenExp && rhs->getExpType() == ExpType :: IdenExp) {			
-			if (leftTableName == rightTableName) {
-				return make_pair(leftTableName, "");
+		if (lhs->getExpType() == ExpType :: IdenExp && rhs->getExpType() == ExpType :: IdenExp) {		
+			
+			if (leftName == rightName) {
+				return make_pair(leftName, make_pair("", ""));
 			}
-			return make_pair(leftTableName, rightTableName);
+
+			if (leftTableName == rightTableName) {
+				return make_pair(leftName, make_pair("", ""));
+			}
+			
+			return make_pair<leftName, rightName>;
 		} else if (lhs->getExpType() == ExpType :: IdenExp) {
 			return make_pair(leftTableName, "");
 		} else if (rhs->getExpType() == ExpType :: IdenExp) {
