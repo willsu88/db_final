@@ -76,8 +76,8 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
 
     } else {
         finalPredicate = "bool[true]";
-        equality_check.first = "bool[true]";
-        equality_check.second = "bool[true]";
+        equality_check.first = "int[1]";
+        equality_check.second = "int[1]";
 
         string randomTable = tableToProcess.front();        
         tableToJoin = tableMap[randomTable];
