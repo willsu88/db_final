@@ -73,8 +73,8 @@ public:
 		return 0;
 	}
 
-	pair<string, string> getTable() {
-		return make_pair("","");
+	pair<pair<string, string>, pair<string, string>> getTable() {
+		return make_pair(make_pair("",""), make_pair("",""));
 	}
 	
 };
@@ -115,8 +115,9 @@ public:
 		return 0;
 	}
 
-	pair<string, string> getTable() {
-		return make_pair("","");
+	pair<pair<string, string>, pair<string, string>> getTable() {
+		return make_pair(make_pair("",""), make_pair("",""));
+
 	}
 
 };
@@ -158,8 +159,8 @@ public:
 		return 0;
 	}
 
-	pair<string, string> getTable() {
-		return make_pair("","");
+	pair<pair<string, string>, pair<string, string>> getTable() {
+		return make_pair(make_pair("",""), make_pair("",""));
 	}
 
 };
@@ -202,8 +203,8 @@ public:
 		return 0;
 	}
 
-	pair<string, string> getTable() {
-		return make_pair("","");
+	pair<pair<string, string>, pair<string, string>> getTable() {
+		return make_pair(make_pair("",""), make_pair("",""));
 	}
 };
 
@@ -273,8 +274,8 @@ public:
 		return 0;
 	}
 
-	pair<string, string> getTable() {
-		return make_pair(tableName,"");
+	pair<pair<string, string>, pair<string, string>> getTable() {
+		return make_pair(make_pair(tableName, attName), make_pair("",""));
 	}
 };
 
@@ -318,8 +319,8 @@ public:
 		return 0;
 	}
 
-	pair<string, string> getTable() {
-		return make_pair("","");
+	pair<pair<string, string>, pair<string, string>> getTable() {
+		return make_pair(make_pair("", ""), make_pair("", ""));
 	}
 };
 
@@ -367,8 +368,8 @@ public:
 		return 0;
 	}
 
-	pair<string, string> getTable() {
-		return make_pair("","");
+	pair<pair<string, string>, pair<string, string>> getTable() {
+		return make_pair(make_pair("", ""), make_pair("", ""));
 	}
 
 
@@ -414,8 +415,8 @@ public:
 		return 0;
 	}
 
-	pair<string, string> getTable() {
-		return make_pair("","");
+	pair<pair<string, string>, pair<string, string>> getTable() {
+		return make_pair(make_pair("", ""), make_pair("", ""));
 	}
 };
 
@@ -458,8 +459,8 @@ public:
 		return 0;
 	}
 
-	pair<string, string> getTable() {
-		return make_pair("","");
+	pair<pair<string, string>, pair<string, string>> getTable() {
+		return make_pair(make_pair("", ""), make_pair("", ""));
 	}
 };
 
@@ -521,15 +522,20 @@ public:
 				return make_pair(leftName, make_pair("", ""));
 			}
 			
-			return make_pair<leftName, rightName>;
-		} else if (lhs->getExpType() == ExpType :: IdenExp) {
-			return make_pair(leftTableName, "");
-		} else if (rhs->getExpType() == ExpType :: IdenExp) {
-			return make_pair(rightTableName, "");
+			return make_pair(leftName, rightName); // Case for two tables
+		} 
+
+		else if (lhs->getExpType() == ExpType :: IdenExp) {
+			return make_pair(leftName, make_pair("", ""));
+		} 
+		
+		else if (rhs->getExpType() == ExpType :: IdenExp) {
+			return make_pair(rightName, make_pair("", ""));
 		}
 
 		cout << "Equality getTable no identifier\n";
-		return make_pair("", "");
+		
+		return make_pair(make_pair("", ""), make_pair("", ""));
 		
 	}
 };
@@ -574,23 +580,38 @@ public:
 		return 0;
 	}
 
-	pair<string, string> getTable() {
-		string leftTableName = lhs->getTable().first;
-		string rightTableName = rhs->getTable().first;
+	pair<pair<string, string>, pair<string, string>> getTable() {
+		pair<string, string> leftName = lhs->getTable().first;
+		pair<string, string> rightName = rhs->getTable().first;
+		string leftTableName = leftName.first;
+		string rightTableName = rightName.first;
+		string leftAttName = leftName.second;
+		string rightAttName = rightName.second;
 
-		if (lhs->getExpType() == ExpType :: IdenExp && rhs->getExpType() == ExpType :: IdenExp) {			
-			if (leftTableName == rightTableName) {
-				return make_pair(leftTableName, "");
+		if (lhs->getExpType() == ExpType :: IdenExp && rhs->getExpType() == ExpType :: IdenExp) {		
+			
+			if (leftName == rightName) {
+				return make_pair(leftName, make_pair("", ""));
 			}
-			return make_pair(leftTableName, rightTableName);
-		} else if (lhs->getExpType() == ExpType :: IdenExp) {
-			return make_pair(leftTableName, "");
-		} else if (rhs->getExpType() == ExpType :: IdenExp) {
-			return make_pair(rightTableName, "");
+
+			if (leftTableName == rightTableName) {
+				return make_pair(leftName, make_pair("", ""));
+			}
+			
+			return make_pair(leftName, rightName); // Case for two tables
+		} 
+
+		else if (lhs->getExpType() == ExpType :: IdenExp) {
+			return make_pair(leftName, make_pair("", ""));
+		} 
+		
+		else if (rhs->getExpType() == ExpType :: IdenExp) {
+			return make_pair(rightName, make_pair("", ""));
 		}
 
 		cout << "Equality getTable no identifier\n";
-		return make_pair("", "");
+		
+		return make_pair(make_pair("", ""), make_pair("", ""));
 		
 	}
 };
@@ -635,23 +656,38 @@ public:
 		return 0;  //! not sure
 	}
 
-	pair<string, string> getTable() {
-		string leftTableName = lhs->getTable().first;
-		string rightTableName = rhs->getTable().first;
+	pair<pair<string, string>, pair<string, string>> getTable() {
+		pair<string, string> leftName = lhs->getTable().first;
+		pair<string, string> rightName = rhs->getTable().first;
+		string leftTableName = leftName.first;
+		string rightTableName = rightName.first;
+		string leftAttName = leftName.second;
+		string rightAttName = rightName.second;
 
-		if (lhs->getExpType() == ExpType :: IdenExp && rhs->getExpType() == ExpType :: IdenExp) {			
-			if (leftTableName == rightTableName) {
-				return make_pair(leftTableName, "");
+		if (lhs->getExpType() == ExpType :: IdenExp && rhs->getExpType() == ExpType :: IdenExp) {		
+			
+			if (leftName == rightName) {
+				return make_pair(leftName, make_pair("", ""));
 			}
-			return make_pair(leftTableName, rightTableName);
-		} else if (lhs->getExpType() == ExpType :: IdenExp) {
-			return make_pair(leftTableName, "");
-		} else if (rhs->getExpType() == ExpType :: IdenExp) {
-			return make_pair(rightTableName, "");
+
+			if (leftTableName == rightTableName) {
+				return make_pair(leftName, make_pair("", ""));
+			}
+			
+			return make_pair(leftName, rightName); // Case for two tables
+		} 
+
+		else if (lhs->getExpType() == ExpType :: IdenExp) {
+			return make_pair(leftName, make_pair("", ""));
+		} 
+		
+		else if (rhs->getExpType() == ExpType :: IdenExp) {
+			return make_pair(rightName, make_pair("", ""));
 		}
 
 		cout << "Equality getTable no identifier\n";
-		return make_pair("", "");
+		
+		return make_pair(make_pair("", ""), make_pair("", ""));
 		
 	}
 };
@@ -695,25 +731,31 @@ public:
 	size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) {
 		return 0;
 	}
-
-	pair<string, string> getTable() {
-		string leftTableName = lhs->getTable().first;
-		string rightTableName = rhs->getTable().first;
-
-		if (leftTableName != "" && rightTableName != "") {			
+	
+	pair<pair<string, string>, pair<string, string>> getTable() {
+		pair<string, string> leftName = lhs->getTable().first;
+		pair<string, string> rightName = rhs->getTable().first;
+		string leftTableName = leftName.first;
+		string rightTableName = rightName.first;
+		string leftAttName = leftName.second;
+		string rightAttName = rightName.second;
+		if (leftTableName != "" && rightTableName != "") {	
 			if (leftTableName == rightTableName) {
-				return make_pair(leftTableName, "");
+				return make_pair(leftName, make_pair("", ""));
 			}
-			return make_pair(leftTableName, rightTableName);
-		} else if (leftTableName != "") {
-			return make_pair(leftTableName, "");
-		} else if (rightTableName != "") {
-			return make_pair(rightTableName, "");
+			return make_pair(leftName, rightName);
+		} 
+		
+		else if (leftTableName != "") {
+			return make_pair(leftName, make_pair("", ""));
+
+		} 
+		else if (rightTableName != "") {
+			return make_pair(rightName, make_pair("", ""));
 		}
 
 		cout << "Equality getTable no identifier\n";
-		return make_pair("", "");
-		
+		return make_pair(make_pair("", ""), make_pair("", ""));
 	}
 };
 
@@ -782,23 +824,38 @@ public:
 
 	}
 
-	pair<string, string> getTable() {
-		string leftTableName = lhs->getTable().first;
-		string rightTableName = rhs->getTable().first;
+	pair<pair<string, string>, pair<string, string>> getTable() {
+		pair<string, string> leftName = lhs->getTable().first;
+		pair<string, string> rightName = rhs->getTable().first;
+		string leftTableName = leftName.first;
+		string rightTableName = rightName.first;
+		string leftAttName = leftName.second;
+		string rightAttName = rightName.second;
 
-		if (lhs->getExpType() == ExpType :: IdenExp && rhs->getExpType() == ExpType :: IdenExp) {			
-			if (leftTableName == rightTableName) {
-				return make_pair(leftTableName, "");
+		if (lhs->getExpType() == ExpType :: IdenExp && rhs->getExpType() == ExpType :: IdenExp) {		
+			
+			if (leftName == rightName) {
+				return make_pair(leftName, make_pair("", ""));
 			}
-			return make_pair(leftTableName, rightTableName);
-		} else if (lhs->getExpType() == ExpType :: IdenExp) {
-			return make_pair(leftTableName, "");
-		} else if (rhs->getExpType() == ExpType :: IdenExp) {
-			return make_pair(rightTableName, "");
+
+			if (leftTableName == rightTableName) {
+				return make_pair(leftName, make_pair("", ""));
+			}
+			
+			return make_pair(leftName, rightName); // Case for two tables
+		} 
+
+		else if (lhs->getExpType() == ExpType :: IdenExp) {
+			return make_pair(leftName, make_pair("", ""));
+		} 
+		
+		else if (rhs->getExpType() == ExpType :: IdenExp) {
+			return make_pair(rightName, make_pair("", ""));
 		}
 
 		cout << "Equality getTable no identifier\n";
-		return make_pair("", "");
+		
+		return make_pair(make_pair("", ""), make_pair("", ""));
 		
 	}
 };
@@ -840,7 +897,7 @@ public:
 		return 0;
 	}
 
-	pair<string, string> getTable() {
+	pair<pair<string, string>, pair<string, string>> getTable() {
 		return child->getTable();
 	}
 	
@@ -884,8 +941,8 @@ public:
 		return 0;
 	}
 
-	pair<string, string> getTable() {
-		return make_pair("","");
+	pair<pair<string, string>, pair<string, string>> getTable() {
+		return make_pair(make_pair("",""), make_pair("",""));
 	}
 
 };
@@ -928,8 +985,8 @@ public:
 		return 0;
 	}
 
-	pair<string, string> getTable() {
-		return make_pair("","");
+	pair<pair<string, string>, pair<string, string>> getTable() {
+		return make_pair(make_pair("",""), make_pair("",""));
 	}
 };
 
