@@ -8,6 +8,7 @@
 #include "SortMergeJoin.h"
 #include "ParserTypes.h"
 #include "MyDB_Catalog.h"
+#include "ExprTree.h"
 #include <chrono>
 #include <algorithm>
 
@@ -26,7 +27,9 @@ QueryManager :: QueryManager (SQLStatement *_statement, MyDB_BufferManagerPtr _b
 MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
     vector<string> tableToProcess, vector<ExprTreePtr> allDisjunctions, map <string, MyDB_TableReaderWriterPtr> tableMap, MyDB_TableReaderWriterPtr cur_table) {
     
-    if (tableToProcess.size() == 0) {
+    vector<string> tableToProcessCopy = tableToProcess;
+    
+    if (tableToProcessCopy.size() == 0) {
         return cur_table;
     }
 
@@ -42,18 +45,18 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
         string rightTable = table_att.second.first;
         // If the disjunct had two tables
         if (leftTable != "" && rightTable != "") {
-            auto leftIt = find(tableToProcess.begin(), tableToProcess.end(), leftTable);
-            auto rightIt = find(tableToProcess.begin(), tableToProcess.end(), rightTable);
+            auto leftIt = find(tableToProcessCopy.begin(), tableToProcessCopy.end(), leftTable);
+            auto rightIt = find(tableToProcessCopy.begin(), tableToProcessCopy.end(), rightTable);
 
             // Both tables belong to tables to process
-            if (leftIt != tableToProcess.end() && rightIt != tableToProcess.end()) {
+            if (leftIt != tableToProcessCopy.end() && rightIt != tableToProcessCopy.end()) {
                 continue;
             }
 
             found_disjunct = true;
             disjunct = d;
             // Means the left table is the one part of cur_table
-            if (leftIt == tableToProcess.end()) {
+            if (leftIt == tableToProcessCopy.end()) {
                 equality_check.first = table_att.first.second;
                 equality_check.second = table_att.second.second;
                 tableToJoin = tableMap[rightTable];
@@ -70,7 +73,7 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
     string finalPredicate;
     if (found_disjunct) {
         // Erase disjunct and table to process
-        tableToProcess.erase(remove(tableToProcess.begin(), tableToProcess.end(), equality_check.second), tableToProcess.end());
+        tableToProcessCopy.erase(remove(tableToProcessCopy.begin(), tableToProcessCopy.end(), equality_check.second), tableToProcessCopy.end());
         allDisjunctions.erase(remove(allDisjunctions.begin(), allDisjunctions.end(), disjunct), allDisjunctions.end());
         finalPredicate = disjunct->toString();
 
@@ -79,9 +82,9 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
         equality_check.first = "bool[true]";
         equality_check.second = "bool[true]";
 
-        string randomTable = tableToProcess.front();        
+        string randomTable = tableToProcessCopy.front();        
         tableToJoin = tableMap[randomTable];
-        tableToProcess.erase(remove(tableToProcess.begin(), tableToProcess.end(), randomTable), tableToProcess.end());
+        tableToProcessCopy.erase(remove(tableToProcessCopy.begin(), tableToProcessCopy.end(), randomTable), tableToProcessCopy.end());
     }
 
     MyDB_SchemaPtr mySchemaOutAgain  = make_shared <MyDB_Schema> ();
@@ -107,7 +110,7 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
 
     SortMergeJoin myOp (cur_table, tableToJoin, outputTablePtr, finalPredicate, projections, equality_check, "bool[true]", "bool[true]");
 
-    return joinOptimization(tableToProcess, allDisjunctions, tableMap, outputTablePtr);
+    return joinOptimization(tableToProcessCopy, allDisjunctions, tableMap, outputTablePtr);
 }
 
 void QueryManager :: runExpression () {
