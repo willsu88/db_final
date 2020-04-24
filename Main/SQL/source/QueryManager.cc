@@ -11,6 +11,7 @@
 #include "MyDB_Catalog.h"
 #include "ExprTree.h"
 #include <chrono>
+#include "limits.h"
 #include <algorithm>
 
 using namespace std;
@@ -41,6 +42,7 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
     string tableToRemove;
     ExprTreePtr disjunct;// join param
     bool found_disjunct = false;
+    int min_cost = INT_MAX;
     for (auto d : allDisjunctions) {
         
         table_att = d->getTable();
@@ -58,7 +60,19 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
             }
 
             cout << "left table: " << leftTable << " right table: " << rightTable << endl;
+            
             found_disjunct = true;
+            // calculating cost
+            size_t leftT =  tableMap[leftTable]->getTable()->getTupleCount();
+            size_t rightT = tableMap[rightTable]->getTable()->getTupleCount();
+            size_t leftV = tableMap[leftTable]->getTable()->getDistinctValues(table_att.first.second);
+            size_t rightV = tableMap[rightTable]->getTable()->getDistinctValues(table_att.second.second);
+            size_t cost = (leftT * rightT * min(leftV, rightV)) / (leftV * rightV);
+            cout << "cost: " << cost << endl;
+            if (cost >= min_cost)
+                continue;
+
+            min_cost = cost;
             disjunct = d;
             // Means the left table is the one part of cur_table
             if (leftIt == tableToProcessCopy.end()) {
@@ -72,11 +86,10 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
                 tableToJoin = tableMap[leftTable];
                 tableToRemove = leftTable;
             }
-            break;
         } 
 
     }
-
+    cout << "finished checking all the disjunct\n";
     string finalPredicate;
     
     
@@ -198,8 +211,11 @@ void QueryManager :: runExpression () {
             /* Retain all attributes in the original table */
             MyDB_SchemaPtr mySchema = make_shared <MyDB_Schema> ();
             vector<pair<string, MyDB_AttTypePtr>> tableAtts = tableMap[tableName]->getTable()->getSchema()->getAtts();
+            vector<size_t> distinct_values;
+            MyDB_TablePtr tablePtr = tableMap[tableName]->getTable();
             for (auto att : tableAtts) {
                 tableToProjectionMap[tableName].push_back("[" + att.first + "]");
+                distinct_values.push_back(tablePtr->getDistinctValues(att.first));
                 mySchema->appendAtt(att);
             }
 
@@ -213,36 +229,53 @@ void QueryManager :: runExpression () {
 
             MyDB_RecordIteratorAltPtr ttIter = tempOutTablePtr->getIteratorAlt();
             MyDB_RecordPtr rectt = tempOutTablePtr->getEmptyRecord();
-            if (ttIter->advance())  {
-                ttIter->getCurrent(rectt);
-                cout << "A rec from input table " << rectt << endl;
+            // new tuple count
+            long new_counter = 0;
+            // // new distinct att count
+            // vector <pair <set <size_t>, int>> allHashes;
+	        // for (int i = 0; i < tempRec->getSchema ()->getAtts ().size (); i++) {
+		    //     set <size_t> temp1;
+		    //     allHashes.push_back (make_pair (temp1, 1));
+	        // }
 
-            } else {
+            while (ttIter->advance())  {
+                ttIter->getCurrent(rectt);
+                new_counter++;
+            } 
+
+            if (new_counter == 0) {
                 isZero = true;
-                break;
             }
 
+            tempOutTablePtr->getTable()->setTupleCount(new_counter);
+            tempOutTablePtr->getTable()->setDistinctValues(distinct_values);
 
             /* Replace table pointer with new table pointer */
+            cout << tableMap[tableName] << " before\n";
             tableMap[tableName] = tempOutTablePtr; 
+            cout << tableMap[tableName] << " after\n";
+
         }
         /* -------------------- Push Selection Down ------------------ */
 
-
+        cout << "Choosing starting table\n";
         /* Find the smallest table first */
         MyDB_TableReaderWriterPtr cur_table = tableMap[joinTables.front()];
-        cout << "Cur table is " << joinTables.front() << endl;
+        string smallTable = joinTables.front();
+        cout << smallTable << " : " << cur_table->getTable()->getTupleCount() << " recs\n";
+        for (int i = 1; i < joinTables.size(); i++) {
+            MyDB_TableReaderWriterPtr next_table = tableMap[joinTables[i]];
+            cout << joinTables[i] << " : " << next_table->getTable()->getTupleCount() << " recs\n";
+            size_t cur_size = cur_table->getTable()->getTupleCount();
+            size_t next_size = next_table->getTable()->getTupleCount();
+            if (next_size < cur_size)  {
+                cur_table = next_table;
+                smallTable = joinTables[i];
+            }
+        }
 
-        // for (int i = 1; i < joinTables.size(); i++) {
-        //     MyDB_TableReaderWriterPtr next_table = tableMap[joinTables[i]];
-
-        //     size_t cur_size = cur_table->getTable()->getTupleCount();
-        //     size_t next_size = next_table->getTable()->getTupleCount();
-        //     if (next_size < cur_size) 
-        //         cur_table = next_table;
-        // }
-
-        joinTables.erase(remove(joinTables.begin(), joinTables.end(), joinTables.front()), joinTables.end());
+        cout << "starting table is " << smallTable << endl;
+        joinTables.erase(remove(joinTables.begin(), joinTables.end(), smallTable), joinTables.end());
         
 
         if (!isZero) {
