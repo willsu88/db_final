@@ -107,13 +107,30 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
 
     vector<string> projections;
     for (auto att : leftTableAtts) {
-        projections.push_back(att.first);
+        cout << att.first << "-" << att.second->toString() << "|";
+        if (att.first.substr(0, 1) == "[") {
+            projections.push_back(att.first);
+        } else {
+            projections.push_back("[" + att.first + "]");
+        }
         mySchemaOutAgain->appendAtt(att);
     }
+    cout << endl;
 
     for (auto att : rightTableAtts) {
-        projections.push_back(att.first);
+        cout << att.first << "-" << att.second->toString() << "|";
+        if (att.first.substr(0, 1) == "[") {
+            projections.push_back(att.first);
+        } else {
+            projections.push_back("[" + att.first + "]");
+        }
         mySchemaOutAgain->appendAtt(att);
+    }
+    cout << endl;
+
+    cout << "Projections\n";
+    for (auto p : projections) {
+        cout << p << endl;
     }
 
 
@@ -122,7 +139,12 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
     MyDB_TableReaderWriterPtr outputTablePtr = make_shared<MyDB_TableReaderWriter>(outTable, this->bufMgrPtr);
 
     SortMergeJoin myOp (cur_table, tableToJoin, outputTablePtr, finalPredicate, projections, equality_check, "bool[true]", "bool[true]");
-
+    MyDB_RecordIteratorAltPtr ttIter = outputTablePtr->getIteratorAlt();
+    MyDB_RecordPtr rectt = outputTablePtr->getEmptyRecord();
+    ttIter->advance();
+    ttIter->getCurrent(rectt);
+    cout << "A rec from input table " << rectt << endl;
+    cout << endl;
     return joinOptimization(tableToProcessCopy, allDisjunctions, tableMap, outputTablePtr);
 }
 
@@ -156,7 +178,7 @@ void QueryManager :: runExpression () {
         map <string, vector<string>> tableToPredicateMap; //<tableName, predicates>
         map <string, string> tableToSelectionMap; //<tableName, final selection>
         map <string, vector<string>> tableToProjectionMap;
-
+        vector<ExprTreePtr> disjunctToRemove;
         /* Map table name to vector of one table disjunctions */
         for(auto d : allDisjunctions){
             pair<pair<string, string>, pair<string, string>> table = d->getTable();
@@ -167,7 +189,12 @@ void QueryManager :: runExpression () {
                 continue;
             
             cout << "push selection " <<  d->toString() << endl;
+            disjunctToRemove.push_back(d);
             tableToPredicateMap[leftTableName].push_back(d->toString());
+        }
+
+        for (auto d : disjunctToRemove) {
+            allDisjunctions.erase(remove(allDisjunctions.begin(), allDisjunctions.end(), d), allDisjunctions.end());
         }
 
         /* Loop through every table with a disjunction */
@@ -192,6 +219,13 @@ void QueryManager :: runExpression () {
             /* Run Selection on this final predicate */
             RegularSelection *selection = new RegularSelection(tableMap[tableName], tempOutTablePtr, tableToSelectionMap[tableName], tableToProjectionMap[tableName]);
             selection->run();
+
+            MyDB_RecordIteratorAltPtr ttIter = tempOutTablePtr->getIteratorAlt();
+            MyDB_RecordPtr rectt = tempOutTablePtr->getEmptyRecord();
+            ttIter->advance();
+            ttIter->getCurrent(rectt);
+            cout << "A rec from input table " << rectt << endl;
+
 
             /* Replace table pointer with new table pointer */
             tableMap[tableName] = tempOutTablePtr; 
@@ -285,6 +319,12 @@ void QueryManager :: runExpression () {
             selectionPredicate =  "&& (" + selectionPredicate + ", " + allPredicates[i] + ")";
         }
     }
+
+    MyDB_RecordIteratorAltPtr ttIter = inputTablePtr->getIteratorAlt();
+    MyDB_RecordPtr rectt = inputTablePtr->getEmptyRecord();
+    ttIter->advance();
+    ttIter->getCurrent(rectt);
+    cout << "A rec from input table " << rectt << endl;
     
     
     /* Use the schema we created to get a outputTablePtr */ 
