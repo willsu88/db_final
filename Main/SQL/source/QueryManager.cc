@@ -368,6 +368,9 @@ void QueryManager :: runExpression () {
     cout << "Total time taken is: " 
 		<< chrono::duration_cast<chrono::seconds>(end - start).count()
 		<< " sec " << endl;
+
+    system("rm *.bin"); // unix
+
 }
 
 string QueryManager :: CombineSelectionPredicate(vector<string> allPredicates) {
