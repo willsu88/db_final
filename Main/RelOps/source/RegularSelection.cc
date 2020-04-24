@@ -44,6 +44,7 @@ void RegularSelection :: run () {
 			continue;
 		}
 		
+		
 		// run all of the computations
 		int i = 0;
 		for (auto &f : finalComputations) {
@@ -51,6 +52,7 @@ void RegularSelection :: run () {
 		}
 
 		outputRec->recordContentHasChanged ();
+		cout << outputRec << endl;
 		output->append (outputRec);
 	}
 	cout << counter << " num of records\n";

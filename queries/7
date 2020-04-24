@@ -70,6 +70,40 @@ where
 group by
 	ps.ps_partkey;
 
+### Our Results  ###
+Record 0: 1|665.290000|
+Record 1: 2|646.880000|
+Record 2: 5|219.830000|
+Record 3: 7|763.980000|
+Record 4: 8|916.910000|
+Record 5: 9|188.020000|
+Record 6: 10|418.635000|
+Record 7: 12|498.395000|
+Record 8: 13|409.506667|
+Record 9: 14|891.445000|
+Record 10: 15|458.670000|
+Record 11: 18|367.633333|
+Record 12: 19|144.800000|
+Record 13: 20|675.540000|
+Record 14: 23|103.130000|
+Record 15: 25|694.350000|
+Record 16: 27|348.610000|
+Record 17: 28|204.860000|
+Record 18: 29|857.885000|
+Record 19: 33|929.050000|
+Record 20: 34|265.310000|
+Record 21: 35|540.180000|
+Record 22: 37|15.720000|
+Record 23: 43|493.190000|
+Record 24: 44|608.080000|
+Record 25: 45|919.630000|
+Record 26: 46|106.800000|
+Record 27: 48|611.160000|
+Record 28: 53|388.080000|
+Record 29: 54|686.510000|
+Total number of records is: 119448
+Total time taken is: 5 sec 
+
 
 ### Database Results ###
 ps_partkey 			avg

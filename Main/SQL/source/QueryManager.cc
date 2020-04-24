@@ -6,6 +6,7 @@
 #include "MyDB_TableReaderWriter.h"
 #include "MyDB_Schema.h"
 #include "SortMergeJoin.h"
+#include "ScanJoin.h"
 #include "ParserTypes.h"
 #include "MyDB_Catalog.h"
 #include "ExprTree.h"
@@ -28,7 +29,8 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
     vector<string> tableToProcess, vector<ExprTreePtr> allDisjunctions, map <string, MyDB_TableReaderWriterPtr> tableMap, MyDB_TableReaderWriterPtr cur_table) {
     
     vector<string> tableToProcessCopy = tableToProcess;
-    
+    cout << "cur table ptr: " << cur_table << endl;
+    cout << tableToProcess.front() << " ptr: " << tableMap[tableToProcess.front()] << endl;
     cout << tableToProcessCopy.size() << " amount of tables left to process\n";
     if (tableToProcessCopy.size() == 0) {
         return cur_table;
@@ -87,6 +89,7 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
         finalPredicate = disjunct->toString();
 
     } else {
+        cout << "cartesian hit\n";
         finalPredicate = "bool[true]";
         equality_check.first = "int[1]";
         equality_check.second = "int[1]";
@@ -107,7 +110,6 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
 
     vector<string> projections;
     for (auto att : leftTableAtts) {
-        cout << att.first << "-" << att.second->toString() << "|";
         if (att.first.substr(0, 1) == "[") {
             projections.push_back(att.first);
         } else {
@@ -118,7 +120,6 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
     cout << endl;
 
     for (auto att : rightTableAtts) {
-        cout << att.first << "-" << att.second->toString() << "|";
         if (att.first.substr(0, 1) == "[") {
             projections.push_back(att.first);
         } else {
@@ -128,23 +129,14 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
     }
     cout << endl;
 
-    cout << "Projections\n";
-    for (auto p : projections) {
-        cout << p << endl;
-    }
-
 
     MyDB_TablePtr outTable = make_shared<MyDB_Table>("temp_" + to_string(tempTable), "temp_" + to_string(tempTable) + ".bin", mySchemaOutAgain);
     tempTable++;
     MyDB_TableReaderWriterPtr outputTablePtr = make_shared<MyDB_TableReaderWriter>(outTable, this->bufMgrPtr);
-
+    cout << "About to do join\n";
     SortMergeJoin myOp (cur_table, tableToJoin, outputTablePtr, finalPredicate, projections, equality_check, "bool[true]", "bool[true]");
-    MyDB_RecordIteratorAltPtr ttIter = outputTablePtr->getIteratorAlt();
-    MyDB_RecordPtr rectt = outputTablePtr->getEmptyRecord();
-    ttIter->advance();
-    ttIter->getCurrent(rectt);
-    cout << "A rec from input table " << rectt << endl;
-    cout << endl;
+    myOp.run();
+    
     return joinOptimization(tableToProcessCopy, allDisjunctions, tableMap, outputTablePtr);
 }
 
@@ -196,7 +188,7 @@ void QueryManager :: runExpression () {
         for (auto d : disjunctToRemove) {
             allDisjunctions.erase(remove(allDisjunctions.begin(), allDisjunctions.end(), d), allDisjunctions.end());
         }
-
+        bool isZero = false;
         /* Loop through every table with a disjunction */
         for (auto t: tableToPredicateMap) {
             /* Concat the predicates into a final selection predicate */
@@ -222,9 +214,14 @@ void QueryManager :: runExpression () {
 
             MyDB_RecordIteratorAltPtr ttIter = tempOutTablePtr->getIteratorAlt();
             MyDB_RecordPtr rectt = tempOutTablePtr->getEmptyRecord();
-            ttIter->advance();
-            ttIter->getCurrent(rectt);
-            cout << "A rec from input table " << rectt << endl;
+            if (ttIter->advance())  {
+                ttIter->getCurrent(rectt);
+                cout << "A rec from input table " << rectt << endl;
+
+            } else {
+                isZero = true;
+                break;
+            }
 
 
             /* Replace table pointer with new table pointer */
@@ -236,8 +233,6 @@ void QueryManager :: runExpression () {
         /* Find the smallest table first */
         MyDB_TableReaderWriterPtr cur_table = tableMap[joinTables.front()];
         cout << "Cur table is " << joinTables.front() << endl;
-        
-        joinTables.erase(remove(joinTables.begin(), joinTables.end(), joinTables.front()), joinTables.end());
 
         // for (int i = 1; i < joinTables.size(); i++) {
         //     MyDB_TableReaderWriterPtr next_table = tableMap[joinTables[i]];
@@ -247,10 +242,21 @@ void QueryManager :: runExpression () {
         //     if (next_size < cur_size) 
         //         cur_table = next_table;
         // }
+
+        joinTables.erase(remove(joinTables.begin(), joinTables.end(), joinTables.front()), joinTables.end());
         
 
+        if (!isZero) {
+            inputTablePtr = joinOptimization(joinTables, allDisjunctions, tableMap, cur_table);
+        } else {
+            cout << "Total number of records is: " << 0 << endl;
 
-        inputTablePtr = joinOptimization(joinTables, allDisjunctions, tableMap, cur_table);
+            auto end = chrono::steady_clock::now();
+            cout << "Total time taken is: " 
+                << chrono::duration_cast<chrono::seconds>(end - start).count()
+                << " sec " << endl;
+            return;
+        }
     } else {
         cout << "Only table: " << tablesToProcess.front().second << endl;
         inputTablePtr = tableMap[tablesToProcess.front().second];
