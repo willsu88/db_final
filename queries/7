@@ -1,3 +1,56 @@
+CREATE TABLE part (
+
+	p_partkey		INT,
+	p_name		 	STRING,	
+	p_mfgr			STRING,
+	p_brand			STRING,
+	p_type			STRING,
+	p_size			INT,
+	p_container		STRING,
+	p_retailprice		DOUBLE,	
+	p_comment		STRING
+);
+
+load part from part.tbl;
+
+CREATE TABLE supplier (
+	s_suppkey		INT,
+	s_name			STRING,
+	s_address		STRING,
+	s_nationkey		INT,
+	s_phone			STRING,
+	s_acctbal		DOUBLE,
+	s_comment		STRING
+);
+
+load supplier from supplier.tbl;
+
+CREATE TABLE partsupp (
+	ps_partkey	INT,	
+	ps_suppkey	INT,	
+	ps_availqty	INT,
+	ps_supplycost	DOUBLE,
+	ps_comment	STRING
+);
+
+load partsupp from partsupp.tbl;
+
+CREATE TABLE nation (
+	n_nationkey		INT,
+	n_name			STRING,
+	n_regionkey		INT,	
+	n_comment		STRING
+);
+
+load nation from nation.tbl;
+
+CREATE TABLE region (
+	r_regionkey	INT,
+	r_name		STRING,
+	r_comment	STRING
+);
+
+load region from region.tbl;
 
 select
 	ps.ps_partkey, 
