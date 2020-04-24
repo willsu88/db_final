@@ -33,8 +33,6 @@ CREATE TABLE lineitem (
 
 load lineitem from lineitem.tbl;
 
-
-
 select
 	l.l_shipmode,
 	sum (1)
@@ -52,6 +50,9 @@ where
 group by
 	l.l_shipmode;
 
+### Our Results ###
+Total number of records is: 0
+Total time taken is: 8 sec
 
 ### Database Results ###
 Nothing 

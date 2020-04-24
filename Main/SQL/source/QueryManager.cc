@@ -30,7 +30,6 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
     
     vector<string> tableToProcessCopy = tableToProcess;
     cout << "cur table ptr: " << cur_table << endl;
-    cout << tableToProcess.front() << " ptr: " << tableMap[tableToProcess.front()] << endl;
     cout << tableToProcessCopy.size() << " amount of tables left to process\n";
     if (tableToProcessCopy.size() == 0) {
         return cur_table;

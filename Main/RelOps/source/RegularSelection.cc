@@ -15,12 +15,6 @@ RegularSelection :: RegularSelection (MyDB_TableReaderWriterPtr inputIn, MyDB_Ta
 
 void RegularSelection :: run () {
 	
-	cout << "Projections: \n";
-	for (auto pro : projections) {
-		cout << pro << endl;
-	}
-	
-	cout << "Selection: \n" << selectionPredicate << endl;
 	MyDB_RecordPtr inputRec = input->getEmptyRecord ();
 	MyDB_RecordPtr outputRec = output->getEmptyRecord ();
 	
@@ -52,10 +46,8 @@ void RegularSelection :: run () {
 		}
 
 		outputRec->recordContentHasChanged ();
-		cout << outputRec << endl;
 		output->append (outputRec);
 	}
-	cout << counter << " num of records\n";
 }
 
 #endif
