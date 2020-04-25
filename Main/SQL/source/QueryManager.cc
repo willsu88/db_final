@@ -24,6 +24,16 @@ QueryManager :: QueryManager (SQLStatement *_statement, MyDB_BufferManagerPtr _b
     this->allTableReaderWriters = _allTableReaderWriters;
 }
 
+size_t QueryManager :: getCost(string leftTable, string leftAtt,
+ string rightTable, string rightAtt, map <string, MyDB_TableReaderWriterPtr> tableMap) {
+    size_t leftT =  tableMap[leftTable]->getTable()->getTupleCount();
+    size_t rightT = tableMap[rightTable]->getTable()->getTupleCount();
+    size_t leftV = tableMap[leftTable]->getTable()->getDistinctValues(leftAtt);
+    size_t rightV = tableMap[rightTable]->getTable()->getDistinctValues(rightAtt);
+    return (leftT * rightT * min(leftV, rightV)) / (leftV * rightV);
+}
+
+
 // ! change it so the the pass in vector of tables to process with only the shorthand strings becaue with full names it wont work for query 9 and 10 because they use the same table twice 
 // ! make it so the map is from the shorthand string to tablePtr
 MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
@@ -63,11 +73,7 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
             
             found_disjunct = true;
             // calculating cost
-            size_t leftT =  tableMap[leftTable]->getTable()->getTupleCount();
-            size_t rightT = tableMap[rightTable]->getTable()->getTupleCount();
-            size_t leftV = tableMap[leftTable]->getTable()->getDistinctValues(table_att.first.second);
-            size_t rightV = tableMap[rightTable]->getTable()->getDistinctValues(table_att.second.second);
-            size_t cost = (leftT * rightT * min(leftV, rightV)) / (leftV * rightV);
+            size_t cost = getCost(leftTable, table_att.first.second,rightTable, table_att.second.second, tableMap);
             cout << "cost: " << cost << endl;
             if (cost >= min_cost)
                 continue;
@@ -140,8 +146,9 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
         mySchemaOutAgain->appendAtt(att);
     }
     cout << endl;
-
-
+    string rm_old_table = "rm temp_" + to_string(tempTable - 1) + ".bin";
+    cout << rm_old_table << endl;
+    system(rm_old_table.c_str());
     MyDB_TablePtr outTable = make_shared<MyDB_Table>("temp_" + to_string(tempTable), "temp_" + to_string(tempTable) + ".bin", mySchemaOutAgain);
     tempTable++;
     MyDB_TableReaderWriterPtr outputTablePtr = make_shared<MyDB_TableReaderWriter>(outTable, this->bufMgrPtr);
@@ -211,15 +218,13 @@ void QueryManager :: runExpression () {
             /* Retain all attributes in the original table */
             MyDB_SchemaPtr mySchema = make_shared <MyDB_Schema> ();
             vector<pair<string, MyDB_AttTypePtr>> tableAtts = tableMap[tableName]->getTable()->getSchema()->getAtts();
-            vector<size_t> distinct_values;
             MyDB_TablePtr tablePtr = tableMap[tableName]->getTable();
             for (auto att : tableAtts) {
                 tableToProjectionMap[tableName].push_back("[" + att.first + "]");
-                distinct_values.push_back(tablePtr->getDistinctValues(att.first));
                 mySchema->appendAtt(att);
             }
 
-            MyDB_TablePtr tempTablePtr = make_shared<MyDB_Table>("tempTable" + to_string(tempTable), "temp" + to_string(tempTable) + ".bin", mySchema);
+            MyDB_TablePtr tempTablePtr = make_shared<MyDB_Table>("tempTable" + to_string(tempTable), "temp_" + to_string(tempTable) + ".bin", mySchema);
             tempTable++;
             MyDB_TableReaderWriterPtr tempOutTablePtr = make_shared<MyDB_TableReaderWriter>(tempTablePtr, this->bufMgrPtr);
 
@@ -231,17 +236,46 @@ void QueryManager :: runExpression () {
             MyDB_RecordPtr rectt = tempOutTablePtr->getEmptyRecord();
             // new tuple count
             long new_counter = 0;
-            // // new distinct att count
-            // vector <pair <set <size_t>, int>> allHashes;
-	        // for (int i = 0; i < tempRec->getSchema ()->getAtts ().size (); i++) {
-		    //     set <size_t> temp1;
-		    //     allHashes.push_back (make_pair (temp1, 1));
-	        // }
+            // new distinct att count
+            vector <pair <set <size_t>, int>> allHashes;
+	        for (int i = 0; i < rectt->getSchema ()->getAtts ().size (); i++) {
+		        set <size_t> temp1;
+		        allHashes.push_back (make_pair (temp1, 1));
+	        }
 
-            while (ttIter->advance())  {
+            while (ttIter->advance()) {
                 ttIter->getCurrent(rectt);
+                int i = 0;
+                for (auto &a : allHashes) {
+
+                    // insert the hash
+                    size_t hash = rectt->getAtt (i)->hash ();
+                    i++;
+                    if (hash % a.second != 0)
+                        continue;
+
+                    a.first.insert (hash);
+
+                    // if we have too many items, compact them
+                    #define MAX_SIZE 1000
+                    if (a.first.size () > MAX_SIZE) {
+                        a.second *= 2;
+                        set <size_t> newSet;
+                        for (auto &num : a.first) {
+                            if (num % a.second == 0)
+                                newSet.insert (num);
+                        }
+                        a.first = newSet;	
+                    }
+                }
                 new_counter++;
             } 
+
+            vector <size_t> distinct_values;
+            for (auto &a : allHashes) {
+                size_t est = ((size_t) a.first.size ()) * a.second;
+                distinct_values.push_back (est);
+            }
 
             if (new_counter == 0) {
                 isZero = true;
@@ -259,20 +293,44 @@ void QueryManager :: runExpression () {
         /* -------------------- Push Selection Down ------------------ */
 
         cout << "Choosing starting table\n";
-        /* Find the smallest table first */
+
+        // Choosing smallest join
         MyDB_TableReaderWriterPtr cur_table = tableMap[joinTables.front()];
         string smallTable = joinTables.front();
-        cout << smallTable << " : " << cur_table->getTable()->getTupleCount() << " recs\n";
-        for (int i = 1; i < joinTables.size(); i++) {
-            MyDB_TableReaderWriterPtr next_table = tableMap[joinTables[i]];
-            cout << joinTables[i] << " : " << next_table->getTable()->getTupleCount() << " recs\n";
-            size_t cur_size = cur_table->getTable()->getTupleCount();
-            size_t next_size = next_table->getTable()->getTupleCount();
-            if (next_size < cur_size)  {
-                cur_table = next_table;
-                smallTable = joinTables[i];
-            }
+        int min_cost = INT_MAX;
+        for (auto d : allDisjunctions) {
+            
+            pair<pair<string, string>, pair<string,string>> table_att = d->getTable();
+            string leftTable = table_att.first.first;
+            string rightTable = table_att.second.first;
+            // If the disjunct had two tables
+            cout << "left table: " << leftTable << " right table: " << rightTable << endl;
+        
+            // calculating cost
+            size_t cost = getCost(leftTable, table_att.first.second,rightTable, table_att.second.second, tableMap);
+            cout << "cost: " << cost << endl;
+            if (cost >= min_cost)
+                continue;
+            
+            smallTable = leftTable;
+            min_cost = cost;
+            cur_table = tableMap[leftTable];
         }
+
+        /* Find the smallest table first */
+        // MyDB_TableReaderWriterPtr cur_table = tableMap[joinTables.front()];
+        // string smallTable = joinTables.front();
+        // cout << smallTable << " : " << cur_table->getTable()->getTupleCount() << " recs\n";
+        // for (int i = 1; i < joinTables.size(); i++) {
+        //     MyDB_TableReaderWriterPtr next_table = tableMap[joinTables[i]];
+        //     cout << joinTables[i] << " : " << next_table->getTable()->getTupleCount() << " recs\n";
+        //     size_t cur_size = cur_table->getTable()->getTupleCount();
+        //     size_t next_size = next_table->getTable()->getTupleCount();
+        //     if (next_size < cur_size)  {
+        //         cur_table = next_table;
+        //         smallTable = joinTables[i];
+        //     }
+        // }
 
         cout << "starting table is " << smallTable << endl;
         joinTables.erase(remove(joinTables.begin(), joinTables.end(), smallTable), joinTables.end());

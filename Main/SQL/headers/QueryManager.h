@@ -22,6 +22,7 @@ class QueryManager{
         MyDB_TableReaderWriterPtr joinOptimization(vector<string> tableToProcess, vector<ExprTreePtr> allDisjunctions, map <string, MyDB_TableReaderWriterPtr> tableMap, MyDB_TableReaderWriterPtr cur_table);
 
         string CombineSelectionPredicate(vector<string> allPredicates);
+        size_t getCost(string leftTable, string leftAtt,string rightTable, string rightAtt, map <string, MyDB_TableReaderWriterPtr> tableMap);
     private:
         SQLStatement *statement;
         MyDB_BufferManagerPtr bufMgrPtr;
