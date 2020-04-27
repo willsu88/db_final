@@ -121,6 +121,41 @@ group by
 	o.o_orderdate;
 
 
+### Our Results ###
+Record 0: date was 1996-10-26|27779.451850|
+Record 1: date was 1996-09-19|34705.109167|
+Record 2: date was 1995-10-01|41195.056500|
+Record 3: date was 1996-03-01|35271.571500|
+Record 4: date was 1996-06-20|40446.542750|
+Record 5: date was 1995-07-03|38662.036000|
+Record 6: date was 1996-07-09|36752.154300|
+Record 7: date was 1996-03-10|48977.680000|
+Record 8: date was 1995-01-31|38545.024600|
+Record 9: date was 1996-01-23|43832.736400|
+Record 10: date was 1996-03-07|1334.300000|
+Record 11: date was 1996-06-26|21135.312000|
+Record 12: date was 1995-12-21|39508.075200|
+Record 13: date was 1996-07-29|44451.396000|
+Record 14: date was 1996-12-26|22248.954000|
+Record 15: date was 1996-04-01|64951.739400|
+Record 16: date was 1996-08-25|52261.020000|
+Record 17: date was 1996-04-09|28016.312500|
+Record 18: date was 1996-07-25|38553.519600|
+Record 19: date was 1996-03-29|1254.330000|
+Record 20: date was 1995-07-25|49605.936200|
+Record 21: date was 1995-03-10|33180.076800|
+Record 22: date was 1995-07-09|27454.321000|
+Record 23: date was 1995-09-23|22372.623900|
+Record 24: date was 1995-11-17|23355.856000|
+Record 25: date was 1995-04-30|40273.929000|
+Record 26: date was 1995-12-24|32718.390300|
+Record 27: date was 1995-05-09|30877.309167|
+Record 28: date was 1996-08-04|46777.858800|
+Record 29: date was 1996-08-09|3507.229000|
+Total number of records is: 376
+Total time taken is: 41 sec
+
+
 ### Database Results ###
 random					avg
 "date was 1995-01-01"	"20242.645250000000"

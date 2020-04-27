@@ -24,6 +24,8 @@ public:
 	// get the list of all of the attributes... the pair is the name and the type
 	vector <pair <string, MyDB_AttTypePtr>> &getAtts ();
 
+	void setAtts(vector <pair <string, MyDB_AttTypePtr>> allAts);
+
 	// append another attribute to the schema
 	void appendAtt (pair <string, MyDB_AttTypePtr> addAtt);
 

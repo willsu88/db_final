@@ -188,7 +188,21 @@ void QueryManager :: runExpression () {
     for (auto table: tablesToProcess) {
         joinTables.push_back(table.second);
         tableAliases[table.second] = table.first;
-        tableMap[table.second] = allTableReaderWriters[table.first];
+        tableMap[table.second] = make_shared<MyDB_TableReaderWriter> (allTableReaderWriters[table.first]);
+    }
+
+    for (auto table : joinTables) {
+
+        vector <pair <string, MyDB_AttTypePtr>> attPairs = tableMap[table]->getTable()->getSchema()->getAtts();
+        MyDB_SchemaPtr aliasSchema = make_shared <MyDB_Schema> ();
+        for (auto att : attPairs) {
+            string first = table + "_" + att.first;
+            aliasSchema->appendAtt(make_pair(first, att.second));
+        }
+        cout << "atts changed\n";
+        tableMap[table]->getTable()->setSchema(aliasSchema);
+        cout << tableMap[table]->getTable()->getSchema() << endl;
+        
     }
 
     for (auto v : valuesToSelect) {
@@ -210,14 +224,16 @@ void QueryManager :: runExpression () {
         cout << at << endl;
     }
     
+    int table_size = joinTables.size();
 
-    if (joinTables.size() != 1) {
+    if (table_size != 1) {
 
         /* -------------------- Push Selection Down ------------------ */
         map <string, vector<string>> tableToPredicateMap; //<tableName, predicates>
         map <string, string> tableToSelectionMap; //<tableName, final selection>
         map <string, vector<string>> tableToProjectionMap;
         vector<ExprTreePtr> disjunctToRemove;
+
         /* Map table name to vector of one table disjunctions */
         for(auto d : allDisjunctions){
             pair<pair<string, string>, pair<string, string>> table = d->getTable();
@@ -329,39 +345,26 @@ void QueryManager :: runExpression () {
         MyDB_TableReaderWriterPtr cur_table = tableMap[joinTables.front()];
         string smallTable = joinTables.front();
         int min_cost = INT_MAX;
-        for (auto d : allDisjunctions) {
+        if (!isZero) {
+            for (auto d : allDisjunctions) {
             
-            pair<pair<string, string>, pair<string,string>> table_att = d->getTable();
-            string leftTable = table_att.first.first;
-            string rightTable = table_att.second.first;
-            // If the disjunct had two tables
-            cout << "left table: " << leftTable << " right table: " << rightTable << endl;
-        
-            // calculating cost
-            size_t cost = getCost(leftTable, table_att.first.second,rightTable, table_att.second.second, tableMap);
-            cout << "cost: " << cost << endl;
-            if (cost >= min_cost)
-                continue;
+                pair<pair<string, string>, pair<string,string>> table_att = d->getTable();
+                string leftTable = table_att.first.first;
+                string rightTable = table_att.second.first;
+                // If the disjunct had two tables
+                cout << "left table: " << leftTable << " right table: " << rightTable << endl;
             
-            smallTable = leftTable;
-            min_cost = cost;
-            cur_table = tableMap[leftTable];
+                // calculating cost
+                size_t cost = getCost(leftTable, table_att.first.second,rightTable, table_att.second.second, tableMap);
+                cout << "cost: " << cost << endl;
+                if (cost >= min_cost)
+                    continue;
+                
+                smallTable = leftTable;
+                min_cost = cost;
+                cur_table = tableMap[leftTable];
+            }
         }
-
-        /* Find the smallest table first */
-        // MyDB_TableReaderWriterPtr cur_table = tableMap[joinTables.front()];
-        // string smallTable = joinTables.front();
-        // cout << smallTable << " : " << cur_table->getTable()->getTupleCount() << " recs\n";
-        // for (int i = 1; i < joinTables.size(); i++) {
-        //     MyDB_TableReaderWriterPtr next_table = tableMap[joinTables[i]];
-        //     cout << joinTables[i] << " : " << next_table->getTable()->getTupleCount() << " recs\n";
-        //     size_t cur_size = cur_table->getTable()->getTupleCount();
-        //     size_t next_size = next_table->getTable()->getTupleCount();
-        //     if (next_size < cur_size)  {
-        //         cur_table = next_table;
-        //         smallTable = joinTables[i];
-        //     }
-        // }
 
         cout << "starting table is " << smallTable << endl;
         joinTables.erase(remove(joinTables.begin(), joinTables.end(), smallTable), joinTables.end());
@@ -424,6 +427,7 @@ void QueryManager :: runExpression () {
 
     MyDB_SchemaPtr mySchemaOutAgain  = make_shared <MyDB_Schema> ();
 
+    cout << "out schema att names\n";
     for (auto g : groupSchema) {
         mySchemaOutAgain->appendAtt(g);
     }
@@ -434,9 +438,14 @@ void QueryManager :: runExpression () {
 
     /* Parse allDisjunctions */
     vector<string> allPredicates;
-    for(auto d : allDisjunctions){
-        allPredicates.push_back(d->toString());
+    if (table_size != 1) {
+        allPredicates.push_back("bool[true]");
+    } else {
+        for(auto d : allDisjunctions){
+            allPredicates.push_back(d->toString());
+        }
     }
+    
 
     //Todo: make this a function
     /* Combine all predicates into one string */
@@ -449,6 +458,9 @@ void QueryManager :: runExpression () {
 
     MyDB_RecordIteratorAltPtr ttIter = inputTablePtr->getIteratorAlt();
     MyDB_RecordPtr rectt = inputTablePtr->getEmptyRecord();
+    for (auto a : rectt->getSchema()->getAtts()) {
+        cout << a.first << endl;
+    }
     ttIter->advance();
     ttIter->getCurrent(rectt);
     cout << "A rec from input table " << rectt << endl;

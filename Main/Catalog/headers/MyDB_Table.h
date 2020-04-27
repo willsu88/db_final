@@ -47,6 +47,8 @@ public:
 	// gete the schema for this table
 	MyDB_SchemaPtr getSchema ();
 
+	void setSchema(MyDB_SchemaPtr schema);
+
 	// kill the dude
 	~MyDB_Table ();
 

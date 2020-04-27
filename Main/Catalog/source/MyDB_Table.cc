@@ -214,6 +214,10 @@ MyDB_SchemaPtr MyDB_Table :: getSchema () {
 	return mySchema;
 }
 
+void MyDB_Table :: setSchema(MyDB_SchemaPtr schema) {
+	mySchema = schema;
+}
+
 std::ostream& operator<<(std::ostream& os, const MyDB_Table printMe) {
 	os << "name: " << printMe.tableName << "; file: " << printMe.storageLoc << "; schema: " << printMe.mySchema;
     	return os;

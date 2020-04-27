@@ -128,7 +128,7 @@ void Aggregate :: run () {
 
 	// and this runs the selection on the input records
 	func inputPred = inputRec->compileComputation (selectionPredicate);
-
+	cout << "finished all the setup\n";
 	// at this point, we are ready to go!!
 	MyDB_RecordIteratorPtr myIter = input->getIterator (inputRec);
 	MyDB_AttValPtr zero = make_shared <MyDB_IntAttVal> ();

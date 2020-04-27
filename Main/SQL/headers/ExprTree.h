@@ -247,7 +247,7 @@ public:
 	}
 
 	string toString () {
-		return "[" + attName + "]";
+		return "[" + tableName + "_" + attName + "]";
 	}	
 
 	ExpType getExpType() {
@@ -283,7 +283,7 @@ public:
 
 	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
 		string tableFileName = tableAliases[tableName];
-		catalog->getString(tableFileName + "." + attName + ".type", this->attributeType);
+		catalog->getString(tableFileName + "." + tableName + "_" + attName + ".type", this->attributeType);
 		this->getAttType();
 		return attTypePtr;
 	}
@@ -297,12 +297,12 @@ public:
 	}
 
 	pair<pair<string, string>, pair<string, string>> getTable() {
-		return make_pair(make_pair(tableName, attName), make_pair("",""));
+		return make_pair(make_pair(tableName, tableName + "_" + attName), make_pair("",""));
 	}
 
 	set<string> getAtts() {
 		set<string> empty;
-		empty.insert(attName);
+		empty.insert(tableName + "_" + attName);
 		return empty;
 	}
 };

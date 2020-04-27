@@ -86,6 +86,10 @@ vector <pair <string, MyDB_AttTypePtr>> &MyDB_Schema :: getAtts () {
 	return allAtts;
 }
 
+void MyDB_Schema :: setAtts(vector <pair <string, MyDB_AttTypePtr>> allAts) {
+	this->allAtts = allAts;
+}
+
 std::ostream& operator<<(std::ostream& os, const MyDB_Schema printMe) {
 	int first = true;
 	for (auto entry : printMe.allAtts) {
