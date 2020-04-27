@@ -62,7 +62,8 @@ What do you want to build/clean?\n
 9. Sort unit tests for Clear (use clang++ compiler)
 10. B+-Tree unit tests for Clear (use clang++ compiler)
 11. Rel Op unit tests for Clear (use clang++ compiler)
-12. final
+12. final (use clang++ compiler)
+13.	final 
 """)
 
 ans=raw_input("Select the module(s) you want to build or clean. ")
@@ -119,5 +120,8 @@ if ans=="11":
 if ans=='12':
 	print("\nOK, building rel op unit tests using clang++.")
 	common_env.Replace(CXX = "clang++")
+	common_env.Program ('bin/sqlUnitTest', ['../Main/SQLTest/source/main.cc', sqlSrc, relOpSrc, tableSrc, recordSrc, catalogSrc, bufferSrc])
+if ans=='13':
+	print("\nOK, building rel op unit tests")
 	common_env.Program ('bin/sqlUnitTest', ['../Main/SQLTest/source/main.cc', sqlSrc, relOpSrc, tableSrc, recordSrc, catalogSrc, bufferSrc])
 
