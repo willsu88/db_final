@@ -1,0 +1,140 @@
+
+Anthony Mata (am138) William Su (ts47)
+
+### Query 1 ###
+Record 0: furiously ir|3000323|
+Total number of records is: 1
+Total time taken is: 8 sec
+
+### Query 2 ###
+Record 0: 420|
+Record 1: 547|
+Record 2: 5895|
+Record 3: 10917|
+Record 4: 17701|
+Record 5: 22182|
+Record 6: 43045|
+Record 7: 44741|
+Record 8: 56866|
+Record 9: 58052|
+Record 10: 84003|
+Record 11: 89059|
+Record 12: 90912|
+Record 13: 92198|
+Record 14: 94439|
+Record 15: 95075|
+Record 16: 95845|
+Record 17: 99392|
+Record 18: 100481|
+Record 19: 110279|
+Record 20: 110530|
+Record 21: 111425|
+Record 22: 124290|
+Record 23: 128865|
+Record 24: 131525|
+Record 25: 132993|
+Record 26: 140418|
+Record 27: 141381|
+Record 28: 143524|
+Record 29: 147301|
+Total number of records is: 1057
+Total time taken is: 7 sec
+
+### Query 3 ###
+Record 0: 292098.000000|3.620425|
+Total number of records is: 1
+Total time taken is: 1 sec
+
+### Query 4 ###
+Record 0: order priority was 5-LOW|150611.604523|
+Record 1: order priority was 4-NOT SPECIFIED|150129.831018|
+Record 2: order priority was 3-MEDIUM|150068.606146|
+Record 3: order priority was 2-HIGH|150724.811169|
+Record 4: order priority was 1-URGENT|150454.466436|
+Total number of records is: 5
+Total time taken is: 2 sec
+
+
+### Query 5 ###
+Record 0: return flag was N|7826475.000000|11731187444.120041|11144649274.750301|11590849811.731108|25.487758|38203.874855|0.049994|307068.000000|
+Total number of records is: 1
+Total time taken is: 8 sec
+
+### Query 6 ###
+wrong result
+
+### Query 7 ###
+Record 0: 1|665.290000|
+Record 1: 2|646.880000|
+Record 2: 5|219.830000|
+Record 3: 7|763.980000|
+Record 4: 8|916.910000|
+Record 5: 9|188.020000|
+Record 6: 10|418.635000|
+Record 7: 12|498.395000|
+Record 8: 13|409.506667|
+Record 9: 14|891.445000|
+Record 10: 15|458.670000|
+Record 11: 18|367.633333|
+Record 12: 19|144.800000|
+Record 13: 20|675.540000|
+Record 14: 23|103.130000|
+Record 15: 25|694.350000|
+Record 16: 27|348.610000|
+Record 17: 28|204.860000|
+Record 18: 29|857.885000|
+Record 19: 33|929.050000|
+Record 20: 34|265.310000|
+Record 21: 35|540.180000|
+Record 22: 37|15.720000|
+Record 23: 43|493.190000|
+Record 24: 44|608.080000|
+Record 25: 45|919.630000|
+Record 26: 46|106.800000|
+Record 27: 48|611.160000|
+Record 28: 53|388.080000|
+Record 29: 54|686.510000|
+Total number of records is: 119448
+Total time taken is: 4 sec
+
+### Query 8 ###
+seg fault
+
+
+
+
+### Query 9 ###
+seg fault
+
+### Query 10 ###
+
+Record 0: date was 1996-09-02|42019.401600|
+Record 1: date was 1995-12-23|7141.480800|
+Record 2: date was 1995-07-03|67809.024000|
+Record 3: date was 1995-11-15|11503.620000|
+Record 4: date was 1995-11-08|26794.560000|
+Record 5: date was 1995-08-02|76243.592700|
+Record 6: date was 1995-02-12|41813.581200|
+Record 7: date was 1995-03-02|31364.402000|
+Record 8: date was 1995-04-20|32173.301600|
+Record 9: date was 1995-11-06|6637.731100|
+Record 10: date was 1995-10-29|13275.462200|
+Record 11: date was 1995-12-05|43676.044800|
+Record 12: date was 1995-02-14|36020.800000|
+Record 13: date was 1995-08-26|35901.868800|
+Record 14: date was 1995-01-21|43612.581600|
+Record 15: date was 1996-02-14|76281.210600|
+Record 16: date was 1995-09-19|19489.245600|
+Record 17: date was 1996-12-28|36201.100000|
+Record 18: date was 1995-11-28|21609.272000|
+Record 19: date was 1995-09-13|58963.661600|
+Record 20: date was 1995-07-20|25386.318000|
+Record 21: date was 1996-01-17|51793.560000|
+Record 22: date was 1995-02-02|55484.170500|
+Record 23: date was 1996-06-04|25009.286400|
+Record 24: date was 1996-01-13|68477.994000|
+Record 25: date was 1995-04-25|26167.889200|
+Total number of records is: 26
+Total time taken is: 41 sec
+
+
