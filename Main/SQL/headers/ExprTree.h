@@ -6,7 +6,9 @@
 #include "MyDB_TableReaderWriter.h"
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <map>
+#include <set>
 #include "MyDB_Catalog.h"
 
 // create a smart pointer for database tables
@@ -33,6 +35,7 @@ public:
 	virtual size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) = 0;
 	// <tablename1, attname1> <tablename2, attname2> 
 	virtual pair<pair<string, string>, pair<string, string>> getTable() = 0;
+	virtual set<string> getAtts() = 0;
 };
 
 class BoolLiteral : public ExprTree {
@@ -75,6 +78,10 @@ public:
 
 	pair<pair<string, string>, pair<string, string>> getTable() {
 		return make_pair(make_pair("",""), make_pair("",""));
+	}
+	set<string> getAtts() {
+		set<string> empty;
+		return empty;
 	}
 	
 };
@@ -120,6 +127,11 @@ public:
 
 	}
 
+	set<string> getAtts() {
+		set<string> empty;
+		return empty;
+	}
+
 };
 
 // this implement class ExprTree
@@ -161,6 +173,11 @@ public:
 
 	pair<pair<string, string>, pair<string, string>> getTable() {
 		return make_pair(make_pair("",""), make_pair("",""));
+	}
+
+	set<string> getAtts() {
+		set<string> empty;
+		return empty;
 	}
 
 };
@@ -205,6 +222,11 @@ public:
 
 	pair<pair<string, string>, pair<string, string>> getTable() {
 		return make_pair(make_pair("",""), make_pair("",""));
+	}
+
+	set<string> getAtts() {
+		set<string> empty;
+		return empty;
 	}
 };
 
@@ -277,6 +299,12 @@ public:
 	pair<pair<string, string>, pair<string, string>> getTable() {
 		return make_pair(make_pair(tableName, attName), make_pair("",""));
 	}
+
+	set<string> getAtts() {
+		set<string> empty;
+		empty.insert(attName);
+		return empty;
+	}
 };
 
 class MinusOp : public ExprTree {
@@ -321,6 +349,16 @@ public:
 
 	pair<pair<string, string>, pair<string, string>> getTable() {
 		return make_pair(make_pair("", ""), make_pair("", ""));
+	}
+
+	set<string> getAtts() {
+		set<string> left = lhs->getAtts();
+		set<string> right = rhs->getAtts();
+		set<string> un;
+		merge(left.begin(), left.end(),
+			right.begin(), right.end(),
+			inserter(un, un.begin()));
+		return un;
 	}
 };
 
@@ -372,6 +410,16 @@ public:
 		return make_pair(make_pair("", ""), make_pair("", ""));
 	}
 
+	set<string> getAtts() {
+		set<string> left = lhs->getAtts();
+		set<string> right = rhs->getAtts();
+		set<string> un;
+		merge(left.begin(), left.end(),
+			right.begin(), right.end(),
+			inserter(un, un.begin()));
+		return un;
+	}
+
 
 };
 
@@ -418,6 +466,16 @@ public:
 	pair<pair<string, string>, pair<string, string>> getTable() {
 		return make_pair(make_pair("", ""), make_pair("", ""));
 	}
+
+	set<string> getAtts() {
+		set<string> left = lhs->getAtts();
+		set<string> right = rhs->getAtts();
+		set<string> un;
+		merge(left.begin(), left.end(),
+			right.begin(), right.end(),
+			inserter(un, un.begin()));
+		return un;
+	}
 };
 
 class DivideOp : public ExprTree {
@@ -461,6 +519,16 @@ public:
 
 	pair<pair<string, string>, pair<string, string>> getTable() {
 		return make_pair(make_pair("", ""), make_pair("", ""));
+	}
+
+	set<string> getAtts() {
+		set<string> left = lhs->getAtts();
+		set<string> right = rhs->getAtts();
+		set<string> un;
+		merge(left.begin(), left.end(),
+			right.begin(), right.end(),
+			inserter(un, un.begin()));
+		return un;
 	}
 };
 
@@ -538,6 +606,16 @@ public:
 		return make_pair(make_pair("", ""), make_pair("", ""));
 		
 	}
+
+	set<string> getAtts() {
+		set<string> left = lhs->getAtts();
+		set<string> right = rhs->getAtts();
+		set<string> un;
+		merge(left.begin(), left.end(),
+			right.begin(), right.end(),
+			inserter(un, un.begin()));
+		return un;
+	}
 };
 
 class LtOp : public ExprTree {
@@ -613,6 +691,16 @@ public:
 		
 		return make_pair(make_pair("", ""), make_pair("", ""));
 		
+	}
+
+	set<string> getAtts() {
+		set<string> left = lhs->getAtts();
+		set<string> right = rhs->getAtts();
+		set<string> un;
+		merge(left.begin(), left.end(),
+			right.begin(), right.end(),
+			inserter(un, un.begin()));
+		return un;
 	}
 };
 
@@ -690,6 +778,16 @@ public:
 		return make_pair(make_pair("", ""), make_pair("", ""));
 		
 	}
+
+	set<string> getAtts() {
+		set<string> left = lhs->getAtts();
+		set<string> right = rhs->getAtts();
+		set<string> un;
+		merge(left.begin(), left.end(),
+			right.begin(), right.end(),
+			inserter(un, un.begin()));
+		return un;
+	}
 };
 
 class OrOp : public ExprTree {
@@ -756,6 +854,16 @@ public:
 
 		cout << "Equality getTable no identifier\n";
 		return make_pair(make_pair("", ""), make_pair("", ""));
+	}
+
+	set<string> getAtts() {
+		set<string> left = lhs->getAtts();
+		set<string> right = rhs->getAtts();
+		set<string> un;
+		merge(left.begin(), left.end(),
+			right.begin(), right.end(),
+			inserter(un, un.begin()));
+		return un;
 	}
 };
 
@@ -858,6 +966,16 @@ public:
 		return make_pair(make_pair("", ""), make_pair("", ""));
 		
 	}
+
+	set<string> getAtts() {
+		set<string> left = lhs->getAtts();
+		set<string> right = rhs->getAtts();
+		set<string> un;
+		merge(left.begin(), left.end(),
+			right.begin(), right.end(),
+			inserter(un, un.begin()));
+		return un;
+	}
 };
 
 class NotOp : public ExprTree {
@@ -899,6 +1017,10 @@ public:
 
 	pair<pair<string, string>, pair<string, string>> getTable() {
 		return child->getTable();
+	}
+
+	set<string> getAtts() {
+		return child->getAtts();
 	}
 	
 };
@@ -945,6 +1067,10 @@ public:
 		return make_pair(make_pair("",""), make_pair("",""));
 	}
 
+	set<string> getAtts() {
+		return child->getAtts();
+	}
+
 };
 
 class AvgOp : public ExprTree {
@@ -987,6 +1113,10 @@ public:
 
 	pair<pair<string, string>, pair<string, string>> getTable() {
 		return make_pair(make_pair("",""), make_pair("",""));
+	}
+
+	set<string> getAtts() {
+		return child->getAtts();
 	}
 };
 

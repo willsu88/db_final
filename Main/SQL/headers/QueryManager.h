@@ -28,6 +28,7 @@ class QueryManager{
         MyDB_BufferManagerPtr bufMgrPtr;
         map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters;
         MyDB_CatalogPtr catalog;
+        set<string> allAtts;
         int tempTable = 0;
 
 

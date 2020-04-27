@@ -10,6 +10,7 @@
 #include "ParserTypes.h"
 #include "MyDB_Catalog.h"
 #include "ExprTree.h"
+#include <set>
 #include <chrono>
 #include "limits.h"
 #include <algorithm>
@@ -41,122 +42,131 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
     
     vector<string> tableToProcessCopy = tableToProcess;
     cout << "cur table ptr: " << cur_table << endl;
-    cout << tableToProcessCopy.size() << " amount of tables left to process\n";
-    if (tableToProcessCopy.size() == 0) {
-        return cur_table;
-    }
-
-    pair<pair<string, string>, pair<string, string>> table_att;
-    pair<string, string> equality_check;// join param
-    MyDB_TableReaderWriterPtr tableToJoin;// join param
-    string tableToRemove;
-    ExprTreePtr disjunct;// join param
-    bool found_disjunct = false;
-    int min_cost = INT_MAX;
-    for (auto d : allDisjunctions) {
+    while (tableToProcessCopy.size() != 0) {
         
-        table_att = d->getTable();
-        string leftTable = table_att.first.first;
-        string rightTable = table_att.second.first;
-        // If the disjunct had two tables
-        if (leftTable != "" && rightTable != "") {
-            cout << "Disjunct: " << d->toString() << endl;
-            auto leftIt = find(tableToProcessCopy.begin(), tableToProcessCopy.end(), leftTable);
-            auto rightIt = find(tableToProcessCopy.begin(), tableToProcessCopy.end(), rightTable);
-
-            // Both tables belong to tables to process
-            if (leftIt != tableToProcessCopy.end() && rightIt != tableToProcessCopy.end()) {
-                continue;
-            }
-
-            cout << "left table: " << leftTable << " right table: " << rightTable << endl;
+        cout << tableToProcessCopy.size() << " amount of tables left to process\n";
+        pair<pair<string, string>, pair<string, string>> table_att;
+        pair<string, string> equality_check;// join param
+        MyDB_TableReaderWriterPtr tableToJoin;// join param
+        string tableToRemove;
+        ExprTreePtr disjunct;// join param
+        bool found_disjunct = false;
+        int min_cost = INT_MAX;
+        for (auto d : allDisjunctions) {
             
-            found_disjunct = true;
-            // calculating cost
-            size_t cost = getCost(leftTable, table_att.first.second,rightTable, table_att.second.second, tableMap);
-            cout << "cost: " << cost << endl;
-            if (cost >= min_cost)
-                continue;
+            table_att = d->getTable();
+            string leftTable = table_att.first.first;
+            string rightTable = table_att.second.first;
+            // If the disjunct had two tables
+            if (leftTable != "" && rightTable != "") {
+                cout << "Disjunct: " << d->toString() << endl;
+                auto leftIt = find(tableToProcessCopy.begin(), tableToProcessCopy.end(), leftTable);
+                auto rightIt = find(tableToProcessCopy.begin(), tableToProcessCopy.end(), rightTable);
 
-            min_cost = cost;
-            disjunct = d;
-            // Means the left table is the one part of cur_table
-            if (leftIt == tableToProcessCopy.end()) {
-                equality_check.first = "[" + table_att.first.second + "]";
-                equality_check.second = "[" + table_att.second.second + "]";
-                tableToJoin = tableMap[rightTable];
-                tableToRemove = rightTable;
+                // Both tables belong to tables to process
+                if (leftIt != tableToProcessCopy.end() && rightIt != tableToProcessCopy.end()) {
+                    continue;
+                }
+
+                cout << "left table: " << leftTable << " right table: " << rightTable << endl;
+                
+                found_disjunct = true;
+                // calculating cost
+                size_t cost = getCost(leftTable, table_att.first.second,rightTable, table_att.second.second, tableMap);
+                cout << "cost: " << cost << endl;
+                if (cost >= min_cost)
+                    continue;
+
+                min_cost = cost;
+                disjunct = d;
+                // Means the left table is the one part of cur_table
+                if (leftIt == tableToProcessCopy.end()) {
+                    equality_check.first = "[" + table_att.first.second + "]";
+                    equality_check.second = "[" + table_att.second.second + "]";
+                    tableToJoin = tableMap[rightTable];
+                    tableToRemove = rightTable;
+                } else {
+                    equality_check.first = "[" + table_att.second.second + "]";
+                    equality_check.second = "[" + table_att.first.second + "]";
+                    tableToJoin = tableMap[leftTable];
+                    tableToRemove = leftTable;
+                }
+            } 
+
+        }
+        cout << "finished checking all the disjunct\n";
+        string finalPredicate;
+        
+        
+        if (found_disjunct) {
+            // Erase disjunct and table to process
+            cout << "Removing " << tableToRemove << " from tables to process\n";
+            tableToProcessCopy.erase(remove(tableToProcessCopy.begin(), tableToProcessCopy.end(), tableToRemove), tableToProcessCopy.end());
+            allDisjunctions.erase(remove(allDisjunctions.begin(), allDisjunctions.end(), disjunct), allDisjunctions.end());
+            finalPredicate = disjunct->toString();
+
+        } else {
+            cout << "cartesian hit\n";
+            finalPredicate = "bool[true]";
+            equality_check.first = "int[1]";
+            equality_check.second = "int[1]";
+
+            string randomTable = tableToProcessCopy.front();        
+            tableToJoin = tableMap[randomTable];
+            tableToProcessCopy.erase(remove(tableToProcessCopy.begin(), tableToProcessCopy.end(), randomTable), tableToProcessCopy.end());
+        }
+
+        cout << "equality pair: " << equality_check.first << "," << equality_check.second << endl;
+        cout << "final pred: " << finalPredicate << endl;
+
+        MyDB_SchemaPtr mySchemaOutAgain  = make_shared <MyDB_Schema> ();
+
+        // Getting projections but lazily since I get everything.
+        vector<pair<string, MyDB_AttTypePtr>> leftTableAtts = cur_table->getTable()->getSchema()->getAtts();
+        vector<pair<string, MyDB_AttTypePtr>> rightTableAtts = tableToJoin->getTable()->getSchema()->getAtts();
+
+        vector<string> projections;
+        for (auto att : leftTableAtts) {
+            if (att.first.substr(0, 1) == "[") {
+                projections.push_back(att.first);
             } else {
-                equality_check.first = "[" + table_att.second.second + "]";
-                equality_check.second = "[" + table_att.first.second + "]";
-                tableToJoin = tableMap[leftTable];
-                tableToRemove = leftTable;
+                if (allAtts.find(att.first) != allAtts.end()) {
+                    projections.push_back("[" + att.first + "]");
+                } else {
+                    continue;
+                }
+                
             }
-        } 
-
-    }
-    cout << "finished checking all the disjunct\n";
-    string finalPredicate;
-    
-    
-    if (found_disjunct) {
-        // Erase disjunct and table to process
-        cout << "Removing " << tableToRemove << " from tables to process\n";
-        tableToProcessCopy.erase(remove(tableToProcessCopy.begin(), tableToProcessCopy.end(), tableToRemove), tableToProcessCopy.end());
-        allDisjunctions.erase(remove(allDisjunctions.begin(), allDisjunctions.end(), disjunct), allDisjunctions.end());
-        finalPredicate = disjunct->toString();
-
-    } else {
-        cout << "cartesian hit\n";
-        finalPredicate = "bool[true]";
-        equality_check.first = "int[1]";
-        equality_check.second = "int[1]";
-
-        string randomTable = tableToProcessCopy.front();        
-        tableToJoin = tableMap[randomTable];
-        tableToProcessCopy.erase(remove(tableToProcessCopy.begin(), tableToProcessCopy.end(), randomTable), tableToProcessCopy.end());
-    }
-
-    cout << "equality pair: " << equality_check.first << "," << equality_check.second << endl;
-    cout << "final pred: " << finalPredicate << endl;
-
-    MyDB_SchemaPtr mySchemaOutAgain  = make_shared <MyDB_Schema> ();
-
-    // Getting projections but lazily since I get everything.
-    vector<pair<string, MyDB_AttTypePtr>> leftTableAtts = cur_table->getTable()->getSchema()->getAtts();
-    vector<pair<string, MyDB_AttTypePtr>> rightTableAtts = tableToJoin->getTable()->getSchema()->getAtts();
-
-    vector<string> projections;
-    for (auto att : leftTableAtts) {
-        if (att.first.substr(0, 1) == "[") {
-            projections.push_back(att.first);
-        } else {
-            projections.push_back("[" + att.first + "]");
+            mySchemaOutAgain->appendAtt(att);
         }
-        mySchemaOutAgain->appendAtt(att);
-    }
-    cout << endl;
+        cout << endl;
 
-    for (auto att : rightTableAtts) {
-        if (att.first.substr(0, 1) == "[") {
-            projections.push_back(att.first);
-        } else {
-            projections.push_back("[" + att.first + "]");
+        for (auto att : rightTableAtts) {
+            if (att.first.substr(0, 1) == "[") {
+                projections.push_back(att.first);
+            } else {
+                if (allAtts.find(att.first) != allAtts.end()) {
+                    projections.push_back("[" + att.first + "]");
+                } else {
+                    continue;
+                }
+            }
+            mySchemaOutAgain->appendAtt(att);
         }
-        mySchemaOutAgain->appendAtt(att);
+        cout << endl;
+        string rm_old_table = "rm temp_" + to_string(tempTable - 1) + ".bin";
+        cout << rm_old_table << endl;
+        system(rm_old_table.c_str());
+        MyDB_TablePtr outTable = make_shared<MyDB_Table>("temp_" + to_string(tempTable), "temp_" + to_string(tempTable) + ".bin", mySchemaOutAgain);
+        tempTable++;
+        MyDB_TableReaderWriterPtr outputTablePtr = make_shared<MyDB_TableReaderWriter>(outTable, this->bufMgrPtr);
+        cout << "About to do join\n";
+        SortMergeJoin myOp (cur_table, tableToJoin, outputTablePtr, finalPredicate, projections, equality_check, "bool[true]", "bool[true]");
+        myOp.run();
+        cur_table = outputTablePtr;
     }
-    cout << endl;
-    string rm_old_table = "rm temp_" + to_string(tempTable - 1) + ".bin";
-    cout << rm_old_table << endl;
-    system(rm_old_table.c_str());
-    MyDB_TablePtr outTable = make_shared<MyDB_Table>("temp_" + to_string(tempTable), "temp_" + to_string(tempTable) + ".bin", mySchemaOutAgain);
-    tempTable++;
-    MyDB_TableReaderWriterPtr outputTablePtr = make_shared<MyDB_TableReaderWriter>(outTable, this->bufMgrPtr);
-    cout << "About to do join\n";
-    SortMergeJoin myOp (cur_table, tableToJoin, outputTablePtr, finalPredicate, projections, equality_check, "bool[true]", "bool[true]");
-    myOp.run();
     
-    return joinOptimization(tableToProcessCopy, allDisjunctions, tableMap, outputTablePtr);
+    return cur_table;
 }
 
 void QueryManager :: runExpression () {
@@ -181,6 +191,24 @@ void QueryManager :: runExpression () {
         tableMap[table.second] = allTableReaderWriters[table.first];
     }
 
+    for (auto v : valuesToSelect) {
+        set<string> temp = v->getAtts();
+        for (auto at : temp) {
+            allAtts.insert(at);
+        }
+    }
+
+    for (auto d : allDisjunctions) {
+        set<string> temp = d->getAtts();
+        for (auto at : temp) {
+            allAtts.insert(at);
+        }
+    }
+
+    cout << "all the attr used in the query \n";
+    for (auto at : allAtts) {
+        cout << at << endl;
+    }
     
 
     if (joinTables.size() != 1) {
@@ -220,8 +248,11 @@ void QueryManager :: runExpression () {
             vector<pair<string, MyDB_AttTypePtr>> tableAtts = tableMap[tableName]->getTable()->getSchema()->getAtts();
             MyDB_TablePtr tablePtr = tableMap[tableName]->getTable();
             for (auto att : tableAtts) {
-                tableToProjectionMap[tableName].push_back("[" + att.first + "]");
-                mySchema->appendAtt(att);
+                if (allAtts.find(att.first) != allAtts.end()) {
+                    tableToProjectionMap[tableName].push_back("[" + att.first + "]");
+                    mySchema->appendAtt(att);
+                }
+                
             }
 
             MyDB_TablePtr tempTablePtr = make_shared<MyDB_Table>("tempTable" + to_string(tempTable), "temp_" + to_string(tempTable) + ".bin", mySchema);

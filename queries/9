@@ -1,3 +1,59 @@
+CREATE TABLE supplier (
+	s_suppkey		INT,
+	s_name			STRING,
+	s_address		STRING,
+	s_nationkey		INT,
+	s_phone			STRING,
+	s_acctbal		DOUBLE,
+	s_comment		STRING
+);
+
+load supplier from supplier.tbl;
+
+CREATE TABLE nation (
+	n_nationkey		INT,
+	n_name			STRING,
+	n_regionkey		INT,	
+	n_comment		STRING
+);
+
+load nation from nation.tbl;
+
+CREATE TABLE orders (
+	o_orderkey	INT,
+	o_custkey	INT,	
+	o_orderstatus	STRING,
+	o_totalprice	DOUBLE,
+	o_orderdate	STRING,
+	o_orderpriority	STRING,
+	o_clerk		STRING,
+	o_shippriority	INT,
+	o_comment	STRING
+);
+
+load orders from orders.tbl;
+
+CREATE TABLE lineitem (
+	l_orderkey	INT,
+	l_partkey	INT,
+	l_suppkey	INT,
+	l_linenumber	INT,
+	l_quantity	INT,
+	l_extendedprice	DOUBLE,
+	l_discount	DOUBLE,
+	l_tax		DOUBLE,
+	l_returnflag	STRING,
+	l_linestatus	STRING,
+	l_shipdate	STRING,
+	l_commitdate	STRING,
+	l_receiptdate	STRING,
+	l_shipinstruct	STRING,
+	l_shipmode	STRING,
+	l_comment	STRING
+);
+
+load lineitem from lineitem.tbl;
+
 
 select
 	"supplier name was " + s.s_name,
