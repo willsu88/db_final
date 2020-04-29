@@ -52,6 +52,10 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
         ExprTreePtr disjunct;// join param
         bool found_disjunct = false;
         int min_cost = INT_MAX;
+        bool usingScan = false;
+        map<string, vector<ExprTreePtr>> tableEqualDis;
+        map<string, size_t> costMap;
+        map<string, vector<pair<string, string>>> equality_pairs;
         for (auto d : allDisjunctions) {
             
             table_att = d->getTable();
@@ -69,28 +73,53 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
                 }
 
                 cout << "left table: " << leftTable << " right table: " << rightTable << endl;
-                
+                bool twoDis = costMap.find(leftTable) != costMap.end();
+                tableEqualDis[leftTable].push_back(d);
                 found_disjunct = true;
                 // calculating cost
-                size_t cost = getCost(leftTable, table_att.first.second,rightTable, table_att.second.second, tableMap);
+                size_t cost;
+                if (twoDis) {
+                    
+                    cost = getCost(leftTable, table_att.first.second,rightTable, table_att.second.second, tableMap);
+                    cost /= costMap[leftTable];
+                    cout << "two disjunct cost " << cost << endl;
+                } else {
+                    cost = getCost(leftTable, table_att.first.second,rightTable, table_att.second.second, tableMap);
+                    if (leftIt != tableToProcessCopy.end()) {
+                        cout << rightTable << table_att.second.second << endl;
+                        costMap[leftTable] = tableMap[rightTable]->getTable()->getDistinctValues(table_att.second.second); 
+                    }
+                }
+                
                 cout << "cost: " << cost << endl;
-                if (cost >= min_cost)
+                if (cost >= min_cost) 
                     continue;
+                
+                usingScan = twoDis;
 
                 min_cost = cost;
+                
                 disjunct = d;
-                // Means the left table is the one part of cur_table
-                if (leftIt == tableToProcessCopy.end()) {
-                    equality_check.first = "[" + table_att.first.second + "]";
-                    equality_check.second = "[" + table_att.second.second + "]";
-                    tableToJoin = tableMap[rightTable];
-                    tableToRemove = rightTable;
-                } else {
-                    equality_check.first = "[" + table_att.second.second + "]";
-                    equality_check.second = "[" + table_att.first.second + "]";
+                if (twoDis) {
+                    equality_pairs[leftTable].push_back(make_pair("[" + table_att.first.second + "]","[" + table_att.second.second + "]"));
                     tableToJoin = tableMap[leftTable];
-                    tableToRemove = leftTable;
+                    tableToRemove = leftTable; 
+                } else {
+                    // Means the left table is the one part of cur_table
+                    if (leftIt == tableToProcessCopy.end()) {
+                        equality_check.first = "[" + table_att.first.second + "]";
+                        equality_check.second = "[" + table_att.second.second + "]";
+                        tableToJoin = tableMap[rightTable];
+                        tableToRemove = rightTable;
+                    } else {
+                        equality_pairs[leftTable].push_back(make_pair("[" + table_att.first.second + "]","[" + table_att.second.second + "]"));
+                        equality_check.first = "[" + table_att.second.second + "]";
+                        equality_check.second = "[" + table_att.first.second + "]";
+                        tableToJoin = tableMap[leftTable];
+                        tableToRemove = leftTable;
+                    }
                 }
+                
             } 
 
         }
@@ -102,9 +131,17 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
             // Erase disjunct and table to process
             cout << "Removing " << tableToRemove << " from tables to process\n";
             tableToProcessCopy.erase(remove(tableToProcessCopy.begin(), tableToProcessCopy.end(), tableToRemove), tableToProcessCopy.end());
-            allDisjunctions.erase(remove(allDisjunctions.begin(), allDisjunctions.end(), disjunct), allDisjunctions.end());
-            finalPredicate = disjunct->toString();
-
+            if (usingScan) {
+                vector<string> scanDisStr;
+                for (auto d: tableEqualDis[tableToRemove]) {
+                    scanDisStr.push_back(d->toString());
+                    allDisjunctions.erase(remove(allDisjunctions.begin(), allDisjunctions.end(), d), allDisjunctions.end());
+                }
+                finalPredicate = CombineSelectionPredicate(scanDisStr);
+            } else {
+                allDisjunctions.erase(remove(allDisjunctions.begin(), allDisjunctions.end(), disjunct), allDisjunctions.end());
+                finalPredicate = disjunct->toString();
+            }
         } else {
             cout << "cartesian hit\n";
             finalPredicate = "bool[true]";
@@ -116,14 +153,27 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
             tableToProcessCopy.erase(remove(tableToProcessCopy.begin(), tableToProcessCopy.end(), randomTable), tableToProcessCopy.end());
         }
 
-        cout << "equality pair: " << equality_check.first << "," << equality_check.second << endl;
+        if (usingScan) {
+            for (auto e : equality_pairs[tableToRemove]) {
+                cout << "equality pair: " << e.first << "," << e.second << endl;
+            }
+        } else {
+            cout << "equality pair: " << equality_check.first << "," << equality_check.second << endl;
+        }
         cout << "final pred: " << finalPredicate << endl;
 
         MyDB_SchemaPtr mySchemaOutAgain  = make_shared <MyDB_Schema> ();
 
         // Getting projections but lazily since I get everything.
-        vector<pair<string, MyDB_AttTypePtr>> leftTableAtts = cur_table->getTable()->getSchema()->getAtts();
-        vector<pair<string, MyDB_AttTypePtr>> rightTableAtts = tableToJoin->getTable()->getSchema()->getAtts();
+        vector<pair<string, MyDB_AttTypePtr>> leftTableAtts;
+        vector<pair<string, MyDB_AttTypePtr>> rightTableAtts;
+        if (usingScan) {
+            leftTableAtts = tableToJoin->getTable()->getSchema()->getAtts();
+            rightTableAtts = cur_table->getTable()->getSchema()->getAtts();
+        } else {
+            leftTableAtts = cur_table->getTable()->getSchema()->getAtts();
+            rightTableAtts = tableToJoin->getTable()->getSchema()->getAtts();
+        }
 
         vector<string> projections;
         for (auto att : leftTableAtts) {
@@ -161,8 +211,14 @@ MyDB_TableReaderWriterPtr QueryManager :: joinOptimization(
         tempTable++;
         MyDB_TableReaderWriterPtr outputTablePtr = make_shared<MyDB_TableReaderWriter>(outTable, this->bufMgrPtr);
         cout << "About to do join\n";
-        SortMergeJoin myOp (cur_table, tableToJoin, outputTablePtr, finalPredicate, projections, equality_check, "bool[true]", "bool[true]");
-        myOp.run();
+        if (usingScan) {
+            ScanJoin myOp (tableToJoin, cur_table, outputTablePtr, finalPredicate, projections, equality_pairs[tableToRemove], "bool[true]", "bool[true]");
+            myOp.run();
+        } else {
+            SortMergeJoin myOp (cur_table, tableToJoin, outputTablePtr, finalPredicate, projections, equality_check, "bool[true]", "bool[true]");
+            myOp.run();
+        }
+        
         cur_table = outputTablePtr;
     }
     
