@@ -463,7 +463,9 @@ void QueryManager :: runExpression () {
             int len = push.size();
             push = push.substr(0, len -1);
             aggsToCompute.push_back(make_pair(MyDB_AggType::Sum, push));
-            aggSchema.push_back(make_pair(v->getName(), v->getAttTypePtr(catalog, tableAliases)));
+
+            // aggSchema.push_back(make_pair(v->getName() , inputTablePtr->getTable()->getSchema()->getAttByName(v->getName()).second));
+            aggSchema.push_back(make_pair(v->getName(), v->getAttTypePtr(inputTablePtr->getTable()->getSchema())));
         } 
         else if (expType == ExpType:: AvgExp) {
             hasAggregation = true;
@@ -471,11 +473,13 @@ void QueryManager :: runExpression () {
             int len = push.size();
             push = push.substr(0, len -1);
             aggsToCompute.push_back(make_pair(MyDB_AggType::Avg, push));
-            aggSchema.push_back(make_pair(v->getName(), v->getAttTypePtr(catalog, tableAliases)));
+            // aggSchema.push_back(make_pair(v->getName() , inputTablePtr->getTable()->getSchema()->getAttByName(v->getName()).second));
+            aggSchema.push_back(make_pair(v->getName(), v->getAttTypePtr(inputTablePtr->getTable()->getSchema())));
         } 
         else { // NonAggType
             groupings.push_back(v->toString());
-            groupSchema.push_back(make_pair(v->getName(), v->getAttTypePtr(catalog, tableAliases)));
+            // groupSchema.push_back(make_pair(v->getName() , inputTablePtr->getTable()->getSchema()->getAttByName(v->getName()).second));
+            groupSchema.push_back(make_pair(v->getName(), v->getAttTypePtr(inputTablePtr->getTable()->getSchema())));
             cout << "Grouping:" << v->toString() << endl;
         }
     }
@@ -491,6 +495,8 @@ void QueryManager :: runExpression () {
     for (auto ag: aggSchema) {
         mySchemaOutAgain->appendAtt(ag);
     }
+
+    cout << "end of out schema att names\n";
 
     /* Parse allDisjunctions */
     vector<string> allPredicates;

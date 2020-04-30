@@ -30,7 +30,7 @@ public:
 
 	virtual ExpType getExpType() = 0;
 	virtual AttType getAttType() = 0;
-	virtual MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) = 0;
+	virtual MyDB_AttTypePtr getAttTypePtr(MyDB_SchemaPtr schema) = 0;
 	virtual string getName() = 0;
 	virtual size_t calculateCost(map <string, MyDB_TableReaderWriterPtr> allTableReaderWriters, map <string, string> tableAliases) = 0;
 	// <tablename1, attname1> <tablename2, attname2> 
@@ -64,7 +64,7 @@ public:
 		return ExpType :: NonAgg;
 	}
 
-	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
+	MyDB_AttTypePtr getAttTypePtr(MyDB_SchemaPtr schema) {
 		return make_shared <MyDB_BoolAttType> ();
 	}
 
@@ -110,7 +110,7 @@ public:
 		return ExpType :: NonAgg;
 	}
 
-	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
+	MyDB_AttTypePtr getAttTypePtr(MyDB_SchemaPtr schema) {
 		return make_shared <MyDB_DoubleAttType> ();
 	}
 
@@ -159,7 +159,7 @@ public:
 		return ExpType :: NonAgg;
 	}
 
-	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
+	MyDB_AttTypePtr getAttTypePtr(MyDB_SchemaPtr schema) {
 		return make_shared <MyDB_IntAttType> ();
 	}
 
@@ -208,7 +208,7 @@ public:
 		return ExpType :: NonAgg;
 	}
 
-	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
+	MyDB_AttTypePtr getAttTypePtr(MyDB_SchemaPtr schema) {
 		return make_shared <MyDB_StringAttType> ();
 	}
 
@@ -281,11 +281,13 @@ public:
 		return BoolType;
 	} 
 
-	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
-		string tableFileName = tableAliases[tableName];
-		catalog->getString(tableFileName + "." + tableName + "_" + attName + ".type", this->attributeType);
-		this->getAttType();
-		return attTypePtr;
+	MyDB_AttTypePtr getAttTypePtr(MyDB_SchemaPtr schema) {
+		// string tableFileName = tableAliases[tableName];
+		// catalog->getString(tableFileName + "." + tableName + "_" + attName + ".type", this->attributeType);
+		// this->getAttType();
+
+		return schema->getAttByName(tableName + "_" + attName).second;
+		
 	}
 
 	string getName() {
@@ -335,7 +337,7 @@ public:
 		return NumType;
 	}
 
-	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
+	MyDB_AttTypePtr getAttTypePtr(MyDB_SchemaPtr schema) {
 		return make_shared <MyDB_DoubleAttType> ();
 	}
 
@@ -390,7 +392,7 @@ public:
 		return lhs->getAttType();
 	}
 
-	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
+	MyDB_AttTypePtr getAttTypePtr(MyDB_SchemaPtr schema) {
 		if (StringType == getAttType()) {
 			return make_shared <MyDB_StringAttType> ();
 		} else {
@@ -451,7 +453,7 @@ public:
 		return NumType;
 	}
 
-	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
+	MyDB_AttTypePtr getAttTypePtr(MyDB_SchemaPtr schema) {
 		return make_shared <MyDB_DoubleAttType> ();
 	}
 
@@ -505,7 +507,7 @@ public:
 		return NumType;
 	}
 
-	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
+	MyDB_AttTypePtr getAttTypePtr(MyDB_SchemaPtr schema) {
 		return make_shared <MyDB_DoubleAttType> ();
 	}
 
@@ -560,7 +562,7 @@ public:
 		return BoolType;
 	}
 
-	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
+	MyDB_AttTypePtr getAttTypePtr(MyDB_SchemaPtr schema) {
 		return make_shared <MyDB_BoolAttType>();
 	}
 
@@ -646,7 +648,7 @@ public:
 		return BoolType;
 	}
 
-	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
+	MyDB_AttTypePtr getAttTypePtr(MyDB_SchemaPtr schema) {
 		return make_shared <MyDB_BoolAttType>();
 	}
 
@@ -732,7 +734,7 @@ public:
 		return BoolType;
 	}
 
-	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
+	MyDB_AttTypePtr getAttTypePtr(MyDB_SchemaPtr schema) {
 		return make_shared <MyDB_BoolAttType>();
 	}
 
@@ -818,7 +820,7 @@ public:
 		return BoolType;
 	}
 
-	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
+	MyDB_AttTypePtr getAttTypePtr(MyDB_SchemaPtr schema) {
 		return make_shared <MyDB_BoolAttType>();
 	}
 
@@ -895,7 +897,7 @@ public:
 		return BoolType;
 	}
 
-	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
+	MyDB_AttTypePtr getAttTypePtr(MyDB_SchemaPtr schema) {
 		return make_shared <MyDB_BoolAttType>();
 	}
 
@@ -1004,7 +1006,7 @@ public:
 		return BoolType;
 	}
 
-	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
+	MyDB_AttTypePtr getAttTypePtr(MyDB_SchemaPtr schema) {
 		return make_shared <MyDB_BoolAttType>();
 	}
 
@@ -1051,7 +1053,7 @@ public:
 		return NumType;
 	}
 
-	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
+	MyDB_AttTypePtr getAttTypePtr(MyDB_SchemaPtr schema) {
 		return make_shared <MyDB_DoubleAttType>();
 	}
 
@@ -1099,7 +1101,7 @@ public:
 		return NumType;
 	}
 
-	MyDB_AttTypePtr getAttTypePtr(MyDB_CatalogPtr catalog, map <string, string> tableAliases) {
+	MyDB_AttTypePtr getAttTypePtr(MyDB_SchemaPtr schema) {
 		return make_shared <MyDB_DoubleAttType>();
 	}
 
